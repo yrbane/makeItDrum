@@ -51,7 +51,7 @@
       <input type="file" id="fileInput" accept="audio/*" style="display:none">
     </div>
 
-    <div class="section-label">bibliothèque du son importé — 20 percussions (survol = écoute, clic = variation)</div>
+    <div class="section-label">bibliothèque du son importé — 20 percussions (survol = écoute, clic = variation, clavier Q…P / A…; ou MIDI 36–55)</div>
     <div class="padgrid" id="padGrid"></div>
 
     <div class="transport">
@@ -61,6 +61,8 @@
       <button class="xpbtn" id="btnDeleteKit" type="button" disabled title="Supprimer le kit sélectionné">SUPPRIMER</button>
       <button class="xpbtn" id="btnImportKit" type="button" title="Importer un .kit.zip ou un pack de WAV">IMPORTER…</button>
       <input type="file" id="kitInput" accept=".zip,application/zip" style="display:none">
+      <button class="xpbtn" id="btnMidi" type="button" title="Activer l'entrée MIDI (Web MIDI)">MIDI</button>
+      <select class="kitselect midiselect" id="midiSelect" hidden title="Entrée MIDI"></select>
       <button class="exportbtn" id="btnExportAll" disabled>
         <svg class="icon" viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" rx="1" fill="#3a5a9a"/><rect x="3" y="2" width="7" height="5" fill="#dfe8ff"/><rect x="3" y="9" width="10" height="5" fill="#eee"/></svg>
         EXPORTER LE KIT (.KIT.ZIP)

@@ -7,6 +7,7 @@ import { createRandom } from './core/random.js';
 import { mulberry32, randomSeed } from './core/prng.js';
 import { buildZip, readZip } from './core/zip.js';
 import { packKit, unpackKit, BASE_NOTE } from './core/kit.js';
+import { defaultNotes, padForNote } from './core/midi/drummap.js';
 import { MESSAGES } from './ui/messages.js';
 
 function stem(fileName) {
@@ -16,7 +17,7 @@ function stem(fileName) {
 export function createLibrary({
   padCount, pads, status, fileLabel, exportButton,
   renderer, player, warmUpAudio, readFile, decode, prepareSample, draw, download,
-  storage = null, kitBar = null, promptName = () => null, createBuffer = null,
+  storage = null, kitBar = null, promptName = () => null, createBuffer = null, polyPlayer = null,
   version = '', now = () => new Date().toISOString(), random = Math.random,
   newId = () => (globalThis.crypto && crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
 }) {
@@ -25,6 +26,7 @@ export function createLibrary({
   let currentKit = null; // { id, name } du kit sauvegardé affiché
   const buffers = new Array(padCount).fill(null);
   const seeds = new Array(padCount).fill(null);
+  const notes = defaultNotes(padCount);
   const busy = new Array(padCount).fill(false);
 
   function playingListener(padEl) {
@@ -110,6 +112,18 @@ export function createLibrary({
   function play(idx) {
     if (!buffers[idx]) return;
     player.play(buffers[idx], playingListener(pads.els[idx]));
+  }
+
+  // déclenchement MIDI / clavier : polyphonique, avec vélocité
+  function trigger(idx, velocity) {
+    if (!buffers[idx] || !polyPlayer) return;
+    const listener = playingListener(pads.els[idx]);
+    polyPlayer.play(buffers[idx], { voice: idx, gain: velocity, onStart: listener.onStart, onStop: listener.onStop });
+  }
+
+  function noteOn(note, velocity) {
+    const idx = padForNote(notes, note);
+    if (idx !== null) trigger(idx, velocity);
   }
 
   // le contexte audio est réveillé synchroniquement, dans le geste utilisateur
@@ -199,6 +213,7 @@ export function createLibrary({
       const buf = createBuffer(p.samples, p.sampleRate);
       buffers[p.index] = buf;
       seeds[p.index] = p.seed;
+      notes[p.index] = Number.isInteger(p.note) ? p.note : notes[p.index];
       draw(pads.canvases[p.index], buf.getChannelData(0));
     });
     enableAll();
@@ -255,5 +270,5 @@ export function createLibrary({
     refreshKits();
   }
 
-  return { load, generate, regenerateAll, play, hover, click, exportKit, saveKit, loadKit, deleteKit, importKit, refreshKits, buffers, seeds };
+  return { load, generate, regenerateAll, play, trigger, noteOn, hover, click, exportKit, saveKit, loadKit, deleteKit, importKit, refreshKits, buffers, seeds, notes };
 }

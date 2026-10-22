@@ -190,3 +190,32 @@ test('sans stockage, sauver et supprimer sont désactivés mais l\'export foncti
   await lib.exportKit();
   assert.equal(downloads.length, 1);
 });
+
+test('trigger joue un pad en polyphonie avec la vélocité et allume le pad ; noteOn passe par le mapping', async () => {
+  const played = [];
+  const { lib, deps } = setup({ polyPlayer: { play: (buf, opts) => { played.push(opts); opts.onStart(); }, stopAll: () => {} } });
+  lib.trigger(0, 1);
+  assert.equal(played.length, 0, 'rien sans buffer');
+  await lib.load({ name: 'x.wav' });
+  lib.trigger(2, 0.5);
+  assert.equal(played.length, 1);
+  assert.equal(played[0].voice, 2);
+  assert.equal(played[0].gain, 0.5);
+  assert.equal(deps.pads.els[2].classList.has('playing'), true);
+  played[0].onStop();
+  assert.equal(deps.pads.els[2].classList.has('playing'), false);
+  lib.noteOn(55, 1);
+  assert.equal(played.at(-1).voice, 19);
+  lib.noteOn(60, 1);
+  assert.equal(played.length, 2);
+  assert.deepEqual(lib.notes.slice(0, 2), [36, 37]);
+});
+
+test('un kit chargé apporte ses notes au mapping', async () => {
+  const played = [];
+  const { lib, deps } = setup({ polyPlayer: { play: (buf, opts) => played.push(opts), stopAll: () => {} } });
+  await deps.storage.put({ id: 'k', name: 'K', createdAt: 'x', pads: Array.from({ length: 20 }, (_, i) => ({ index: i, flavor: 'F', seed: 1, note: 60 + i, sampleRate: 8000, samples: new Float32Array([0, 0]) })) });
+  await lib.loadKit('k');
+  lib.noteOn(61, 1);
+  assert.equal(played[0].voice, 1);
+});

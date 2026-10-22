@@ -14,5 +14,7 @@ export function queryElements(doc) {
     btnDeleteKit: doc.getElementById('btnDeleteKit'),
     btnImportKit: doc.getElementById('btnImportKit'),
     kitInput: doc.getElementById('kitInput'),
+    btnMidi: doc.getElementById('btnMidi'),
+    midiSelect: doc.getElementById('midiSelect'),
   };
 }

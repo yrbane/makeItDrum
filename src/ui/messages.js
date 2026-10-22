@@ -22,5 +22,11 @@ export const MESSAGES = {
   kitImportError: (detail) => 'Import impossible : ' + detail,
   kitMissing: 'Ce kit n\'existe plus.',
   noKitSelected: 'Choisis un kit sauvegardé à supprimer.',
+  // MIDI
+  midiUnsupported: 'Web MIDI indisponible dans ce navigateur — le clavier (Q…P, A…;) joue les pads.',
+  midiRefused: 'Accès MIDI refusé — le clavier (Q…P, A…;) joue les pads.',
+  midiReady: (n) => 'MIDI prêt — ' + n + ' entrée' + (n > 1 ? 's' : '') + ' ; notes 36 à 55 = pads 1 à 20.',
+  midiNoInput: 'MIDI prêt — aucune entrée branchée pour l\'instant.',
+  midiAllInputs: 'Toutes les entrées',
   storageUnavailable: 'Sauvegarde indisponible dans ce navigateur — l\'export .kit.zip reste possible.',
 };

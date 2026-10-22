@@ -4,6 +4,9 @@ import { createLiveContext } from './audio/context.js';
 import { makeReversedBuffer } from './audio/buffers.js';
 import { createRenderer } from './audio/renderer.js';
 import { createPlayer } from './audio/player.js';
+import { createPolyPlayer } from './audio/polyplayer.js';
+import { createMidiAccess } from './midi/access.js';
+import { bindKeyboard } from './ui/keyboard.js';
 import { queryElements } from './ui/dom.js';
 import { createPadGrid } from './ui/pads.js';
 import { drawWaveform } from './ui/waveform.js';
@@ -43,6 +46,7 @@ function start(doc, win) {
     exportButton: el.btnExportAll,
     renderer: createRenderer(),
     player: createPlayer(function () { return liveCtx.get(); }),
+    polyPlayer: createPolyPlayer(function () { return liveCtx.get(); }),
     warmUpAudio: function () { liveCtx.get(); },
     readFile: readAsArrayBuffer,
     decode: function (ab) { return liveCtx.get().decodeAudioData(ab); },
@@ -75,6 +79,41 @@ function start(doc, win) {
   el.btnSaveKit.addEventListener('click', function () { library.saveKit(); });
   el.btnDeleteKit.addEventListener('click', function () { library.deleteKit(); });
   el.kitSelect.addEventListener('change', function () { liveCtx.get(); library.loadKit(el.kitSelect.value); });
+  // clavier de l'ordinateur et MIDI
+  bindKeyboard(doc, function (idx) { liveCtx.get(); library.trigger(idx, 1); });
+  const midi = createMidiAccess(win.navigator);
+  function setStatus(t) { el.statusText.textContent = t; }
+  function refreshMidiInputs() {
+    const inputs = midi.inputs();
+    el.midiSelect.textContent = '';
+    const all = doc.createElement('option');
+    all.value = 'all';
+    all.textContent = MESSAGES.midiAllInputs;
+    el.midiSelect.appendChild(all);
+    inputs.forEach(function (i) {
+      const opt = doc.createElement('option');
+      opt.value = i.id;
+      opt.textContent = i.name;
+      el.midiSelect.appendChild(opt);
+    });
+    el.midiSelect.hidden = false;
+    setStatus(inputs.length ? MESSAGES.midiReady(inputs.length) : MESSAGES.midiNoInput);
+  }
+  if (!midi.isSupported()) {
+    el.btnMidi.disabled = true;
+    el.btnMidi.title = MESSAGES.midiUnsupported;
+  }
+  midi.onNote(function (note, velocity) { library.noteOn(note, velocity); });
+  midi.onPortsChanged(refreshMidiInputs);
+  el.btnMidi.addEventListener('click', async function () {
+    liveCtx.get();
+    const ok = await midi.init();
+    if (!ok) { setStatus(midi.isSupported() ? MESSAGES.midiRefused : MESSAGES.midiUnsupported); return; }
+    el.btnMidi.classList.add('on');
+    el.btnMidi.disabled = true;
+    refreshMidiInputs();
+  });
+  el.midiSelect.addEventListener('change', function () { midi.setInput(el.midiSelect.value); });
   el.btnImportKit.addEventListener('click', function () { el.kitInput.value = ''; el.kitInput.click(); });
   el.kitInput.addEventListener('change', function () {
     liveCtx.get();
