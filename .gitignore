@@ -1,0 +1,12 @@
+# Outils locaux
+.remember/
+.superpowers/
+.claude/
+
+# Captures et artefacts de build
+artifacts/
+dist/
+
+# OS / éditeurs
+.DS_Store
+*.swp

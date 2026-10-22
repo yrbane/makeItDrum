@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>make it drum.exe</title>
+<style>
+  :root{
+    --xp-blue-dark:#0a246a;
+    --xp-blue-mid:#3a7ce8;
+    --panel:#d6d3ca;
+    --panel-dark:#b7b3a6;
+    --panel-border:#84806f;
+    --face:linear-gradient(180deg,#f4f2ec,#dedad0 45%,#c6c2b4);
+    --green:#39ff6a;
+    --insetdark:#6f6b5e;
+    --mx:0; --my:0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:Tahoma,'Segoe UI',Verdana,sans-serif;
+    background:
+      radial-gradient(ellipse 120% 60% at 50% 0%, #cfe8ff 0%, #7fb8f0 35%, #2d6fd6 70%, #1a4fb0 100%);
+    padding:24px 12px;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed; left:0; right:0; bottom:0; height:38%;
+    background:linear-gradient(180deg,#4fae3a 0%,#3a9430 55%,#2c7a26 100%);
+    border-top:2px solid #2c7a26;
+    z-index:0;
+  }
+  body::after{
+    content:"";
+    position:fixed; inset:0;
+    background:
+      radial-gradient(60px 30px at 15% 12%, rgba(255,255,255,.85), rgba(255,255,255,0) 70%),
+      radial-gradient(80px 34px at 30% 8%, rgba(255,255,255,.7), rgba(255,255,255,0) 70%),
+      radial-gradient(70px 30px at 78% 15%, rgba(255,255,255,.75), rgba(255,255,255,0) 70%),
+      radial-gradient(50px 24px at 90% 10%, rgba(255,255,255,.6), rgba(255,255,255,0) 70%);
+    pointer-events:none; z-index:0;
+  }
+
+  .winstage{
+    perspective:1400px;
+    perspective-origin:50% 40%;
+  }
+
+  .win{
+    position:relative; z-index:1;
+    width:640px; max-width:100%;
+    background:
+      repeating-linear-gradient(115deg, rgba(255,255,255,.05) 0px, rgba(255,255,255,.05) 1px, rgba(0,0,0,.02) 1px, rgba(0,0,0,.02) 2px),
+      linear-gradient(160deg,#dedbd2 0%,#d1cec3 40%,#bcb9ad 75%,#aeaba0 100%);
+    border:2px solid var(--xp-blue-dark);
+    border-radius:9px 9px 4px 4px;
+    box-shadow:
+      0 2px 0 rgba(255,255,255,.5) inset,
+      0 26px 46px -12px rgba(0,0,0,.65),
+      0 10px 18px -4px rgba(0,0,0,.5),
+      0 2px 0 rgba(255,255,255,.6);
+    overflow:hidden;
+    transform-style:preserve-3d;
+    transform:rotateX(calc(var(--my) * -7deg)) rotateY(calc(var(--mx) * 7deg));
+    transition:transform .15s ease-out;
+    will-change:transform;
+  }
+  .win::after{
+    /* liseré de lumière ambiante balayant le boîtier avec la souris : renforce l'effet matière/3D */
+    content:"";
+    position:absolute; inset:0; z-index:5; pointer-events:none;
+    background:radial-gradient(500px 240px at calc(50% + var(--mx) * 60%) calc(0% + var(--my) * 30%), rgba(255,255,255,.16), rgba(255,255,255,0) 60%);
+    mix-blend-mode:screen;
+  }
+
+  /* title bar */
+  .titlebar{
+    position:relative;
+    height:30px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:2px 4px 2px 6px;
+    background:linear-gradient(180deg,#3f8bef 0%,#6ab0f8 6%,#4a90f2 15%,#1a5fdb 55%,#0e3fb0 92%,#0a246a 100%);
+    border-bottom:1px solid var(--xp-blue-dark);
+    box-shadow:0 3px 6px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.5) inset;
+    transform:translateZ(16px);
+  }
+  .titlebar::before{
+    /* reflet de plastique brillant : bande claire en haut qui se déplace un peu avec la souris */
+    content:"";
+    position:absolute; left:2%; right:2%; top:2px; height:40%;
+    background:linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,0));
+    border-radius:6px 6px 0 0;
+    transform:translateX(calc(var(--mx) * 6px));
+    pointer-events:none;
+  }
+  .titlebar-left{display:flex; align-items:center; gap:6px; color:#fff; font-size:12px; font-weight:bold; text-shadow:1px 1px 1px rgba(0,0,0,.5);}
+  .titlebar-icon{width:16px;height:16px; display:inline-flex; align-items:center; justify-content:center;}
+  .titlebar-btns{display:flex; gap:3px;}
+  .tbtn{
+    width:21px;height:19px;border-radius:3px;
+    background:var(--face);
+    border:1px solid #7a7a7a;
+    font-size:10px; font-weight:bold; color:#333;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 2px 3px rgba(0,0,0,.4);
+  }
+  .tbtn:active{box-shadow:0 1px 3px rgba(0,0,0,.5) inset; transform:translateY(1px);}
+  .tbtn.close{background:linear-gradient(180deg,#ff9a8a,#e2493a);color:#fff;}
+
+  /* menu bar (authentique XP) */
+  .menubar{
+    display:flex; gap:14px; align-items:center;
+    height:20px; padding:0 8px;
+    background:var(--panel);
+    border-bottom:1px solid var(--panel-border);
+    box-shadow:0 1px 0 rgba(255,255,255,.5);
+    font-size:11px; color:#1a1a1a;
+    transform:translateZ(6px);
+  }
+  .menubar span{cursor:default;}
+  .menubar span u{text-decoration:underline;}
+
+  .body{padding:14px 18px 12px;}
+
+  /* logo */
+  .logo-row{display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px; transform:translateZ(30px);}
+  .logo{
+    position:relative;
+    font-family:'Arial Black',Impact,sans-serif;
+    font-weight:900; font-style:italic;
+    font-size:33px; line-height:1;
+    letter-spacing:-1px;
+    background:linear-gradient(180deg,#ffffff 0%,#cfe8ff 20%,#5aa0f0 48%,#0a3fa8 72%,#8fd0ff 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:
+      1px 1px 0 rgba(255,255,255,.9),
+      -1px -1px 0 rgba(0,20,80,.6),
+      2px 3px 0 rgba(0,10,50,.35),
+      0 0 14px rgba(120,190,255,.7);
+    transform:skewX(-4deg);
+    filter:drop-shadow(0 6px 5px rgba(0,0,0,.4));
+  }
+  .tagline{font-size:9px;color:var(--xp-blue-dark);font-weight:bold;letter-spacing:1px;margin-top:2px;}
+  .badge{
+    position:relative;
+    font-size:9px; font-weight:bold; color:#fff; padding:3px 7px; border-radius:9px;
+    background:linear-gradient(180deg,#ff9ac6,#c92a8f);
+    box-shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 4px 8px rgba(0,0,0,.35);
+    white-space:nowrap;
+    overflow:hidden;
+  }
+  .badge::before{
+    content:"";
+    position:absolute; left:8%; right:8%; top:8%; height:38%;
+    background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,0));
+    border-radius:8px;
+    pointer-events:none;
+  }
+
+  /* dropzone */
+  .dropzone{
+    margin-top:6px;
+    border:2px dashed var(--xp-blue-mid);
+    border-radius:5px;
+    background:repeating-linear-gradient(135deg,#fff,#fff 10px,#f2f6ff 10px,#f2f6ff 20px);
+    box-shadow:0 2px 6px rgba(0,0,0,.18) inset, 0 1px 0 rgba(255,255,255,.7);
+    padding:12px 14px; text-align:center; cursor:pointer;
+    transition:background .15s;
+    display:flex; align-items:center; gap:10px; justify-content:center;
+    transform:translateZ(9px);
+  }
+  .dropzone.dragover{background:#dcebff; border-color:#0a246a;}
+  .dropzone .dz-icon{flex:0 0 auto;}
+  .dropzone .dz-text{text-align:left;}
+  .dropzone .dz-title{font-size:12px; font-weight:bold; color:var(--xp-blue-dark);}
+  .dropzone .dz-sub{font-size:10px; color:#556; margin-top:2px;}
+  .dropzone .dz-file{font-size:11px; color:#0a7a2a; font-weight:bold; margin-top:4px;}
+
+  /* section label */
+  .section-label{
+    font-size:10px; font-weight:bold; color:var(--xp-blue-dark);
+    margin:12px 0 5px; padding-bottom:2px;
+    border-bottom:1px solid var(--panel-border);
+    text-transform:uppercase; letter-spacing:.5px;
+    transform:translateZ(5px);
+  }
+
+  /* pad grid : 20 percussions, sans intitulé, chaque pad = un vieil écran encastré */
+  .padgrid{display:flex; flex-wrap:wrap; gap:9px; justify-content:center; transform:translateZ(18px);}
+  .pad{
+    position:relative;
+    flex:0 0 18.2%;
+    height:48px;
+    padding:5px;
+    border-radius:6px;
+    border:1px solid #47443c;
+    background:linear-gradient(155deg,#8c8a80 0%,#6b695f 45%,#57554c 100%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.35) inset,
+      0 -2px 3px rgba(0,0,0,.35) inset,
+      0 3px 5px rgba(0,0,0,.4),
+      0 1px 0 rgba(255,255,255,.4);
+    cursor:pointer; user-select:none;
+  }
+  .pad:active{
+    box-shadow:0 2px 4px rgba(0,0,0,.5) inset, 0 1px 2px rgba(0,0,0,.3);
+    transform:translateY(1px);
+  }
+  .pad canvas{
+    position:relative; z-index:1;
+    display:block; width:100%; height:100%;
+    background:linear-gradient(#001a06,#000);
+    border-radius:2px;
+    box-shadow:0 2px 5px rgba(0,0,0,.8) inset, 0 0 0 1px #0a0a0a inset;
+  }
+  .pad::after{
+    /* vitre de l'écran : reflet diagonal + scanlines, comme un vieux LCD/CRT */
+    content:"";
+    position:absolute; z-index:2; pointer-events:none;
+    top:5px; left:5px; right:5px; bottom:5px;
+    border-radius:2px;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0px, rgba(0,0,0,.16) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 3px),
+      linear-gradient(115deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 30%, rgba(255,255,255,0) 70%, rgba(255,255,255,.08) 100%);
+  }
+  .pad.playing{
+    box-shadow:
+      0 0 0 2px #39ff6a,
+      0 0 10px 2px rgba(57,255,106,.65),
+      0 1px 0 rgba(255,255,255,.35) inset,
+      0 3px 5px rgba(0,0,0,.4);
+  }
+  .pad.playing canvas{background:linear-gradient(#053b13,#001a06); box-shadow:0 0 8px rgba(57,255,106,.5) inset, 0 2px 5px rgba(0,0,0,.6) inset;}
+  .pad:disabled{opacity:.4; cursor:not-allowed;}
+  .pad-num{
+    position:absolute; z-index:3; top:6px; left:9px; font-size:8px; color:#39ff6a;
+    font-family:Tahoma,sans-serif; opacity:.6; pointer-events:none; text-shadow:0 0 3px rgba(0,0,0,.9);
+  }
+
+  .transport{display:flex; align-items:center; gap:8px; margin-top:10px; transform:translateZ(11px);}
+  .exportbtn{
+    flex:1; height:30px; border-radius:4px; font-size:11px; font-weight:bold; color:#1a2a4a;
+    background:var(--face); border:1px solid #6d7a94; cursor:pointer;
+    box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 3px 5px rgba(0,0,0,.3);
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .exportbtn:active{box-shadow:0 2px 4px rgba(0,0,0,.4) inset; transform:translateY(1px);}
+  .exportbtn:disabled{opacity:.4; cursor:not-allowed;}
+  .exportbtn .icon{width:16px;height:16px;}
+
+  /* status bar */
+  .statusbar{
+    margin-top:12px; height:20px; display:flex; align-items:center;
+    background:var(--panel-dark); border-top:1px solid #fff; border-bottom:1px solid #8a8672;
+    box-shadow:0 2px 4px rgba(0,0,0,.15) inset;
+    padding:0 8px; font-size:10px; color:#333;
+    transform:translateZ(3px);
+  }
+  .statusbar .grip{
+    margin-left:auto; width:12px;height:10px;
+    background:
+      linear-gradient(135deg,transparent 40%,#8a8672 40%,#8a8672 55%,transparent 55%),
+      linear-gradient(135deg,transparent 60%,#8a8672 60%,#8a8672 75%,transparent 75%);
+  }
+</style>
+</head>
+<body>
+<div class="winstage">
+<div class="win">
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <span class="titlebar-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16"><ellipse cx="8" cy="11" rx="6" ry="3" fill="#123a9c" stroke="#dfeaff" stroke-width="0.6"/><ellipse cx="8" cy="9.2" rx="6" ry="3" fill="#3a6ce0" stroke="#dfeaff" stroke-width="0.6"/><ellipse cx="8" cy="5.2" rx="6" ry="3" fill="#8fb3ff" stroke="#123a9c" stroke-width="0.6"/></svg>
+      </span>
+      make it drum.exe — Windows XP Edition
+    </div>
+    <div class="titlebar-btns">
+      <div class="tbtn">_</div>
+      <div class="tbtn">□</div>
+      <div class="tbtn close">×</div>
+    </div>
+  </div>
+  <div class="menubar">
+    <span><u>F</u>ichier</span><span><u>É</u>dition</span><span><u>A</u>ffichage</span><span>?</span>
+  </div>
+
+  <div class="body">
+    <div class="logo-row">
+      <div>
+        <div class="logo">make it drum</div>
+        <div class="tagline">▸ ANY SOUND ▸ REAL DRUMKIT ▸ PROCEDURAL PERC ENGINE</div>
+      </div>
+      <div class="badge" id="versionBadge">v1.0.0</div>
+    </div>
+
+    <div class="dropzone" id="dropzone">
+      <span class="dz-icon">
+        <svg width="34" height="34" viewBox="0 0 34 34">
+          <path d="M2 9 L2 28 L32 28 L32 12 L16 12 L13 9 Z" fill="#ffd24a" stroke="#8a6d00" stroke-width="1"/>
+          <path d="M2 9 L2 6 L11 6 L14 9 Z" fill="#ffe28a" stroke="#8a6d00" stroke-width="1"/>
+        </svg>
+      </span>
+      <span class="dz-text">
+        <div class="dz-title">GLISSER-DÉPOSER UN FICHIER AUDIO ICI</div>
+        <div class="dz-sub">ou cliquer pour parcourir — wav / mp3 / ogg…</div>
+        <div class="dz-file" id="dzFile"></div>
+      </span>
+      <input type="file" id="fileInput" accept="audio/*" style="display:none">
+    </div>
+
+    <div class="section-label">bibliothèque du son importé — 20 percussions (survol = écoute, clic = variation)</div>
+    <div class="padgrid" id="padGrid"></div>
+
+    <div class="transport">
+      <button class="exportbtn" id="btnExportAll" disabled>
+        <svg class="icon" viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" rx="1" fill="#3a5a9a"/><rect x="3" y="2" width="7" height="5" fill="#dfe8ff"/><rect x="3" y="9" width="10" height="5" fill="#eee"/></svg>
+        TÉLÉCHARGER TOUT (.ZIP)
+      </button>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span id="statusText">Importer un son pour commencer…</span>
+    <span class="grip"></span>
+  </div>
+</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- effet machine 3D : parallaxe au mouvement de la souris ----------
+  // Le boîtier (.win) est incliné selon la position de la souris ; ses enfants
+  // ayant chacun un translateZ différent (défini en CSS) se décalent alors les
+  // uns par rapport aux autres, donnant un vrai effet de profondeur/parallaxe
+  // façon boîtier de pédale d'effet, sans dupliquer le layout.
+  (function initParallax(){
+    const win = document.querySelector('.win');
+    if(!win) return;
+    let raf = null;
+    function apply(mx, my){
+      win.style.setProperty('--mx', mx.toFixed(3));
+      win.style.setProperty('--my', my.toFixed(3));
+    }
+    function onMove(e){
+      const rect = win.getBoundingClientRect();
+      const cx = rect.left + rect.width/2;
+      const cy = rect.top + rect.height/2;
+      const mx = Math.max(-1, Math.min(1, (e.clientX - cx) / (rect.width/2)));
+      const my = Math.max(-1, Math.min(1, (e.clientY - cy) / (rect.height/2)));
+      if(raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(function(){ apply(mx, my); });
+    }
+    function onLeave(){
+      if(raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(function(){ apply(0, 0); });
+    }
+    window.addEventListener('mousemove', onMove, {passive:true});
+    document.addEventListener('mouseleave', onLeave);
+  })();
+
+  // ---------- state ----------
+  let liveCtx = null;
+  let currentSrc = null; // source actuellement en lecture, pour la couper immédiatement au survol suivant
+  let currentPlayingPad = null;
+  let originalBuffer = null;
+  let reversedBuffer = null; // copie inversée du sample, calculée une fois au chargement
+  let analysis = null; // spectral analysis of the imported sound
+
+  // ---------- dom ----------
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const dzFile = document.getElementById('dzFile');
+  const statusText = document.getElementById('statusText');
+  const btnExportAll = document.getElementById('btnExportAll');
+  const padGrid = document.getElementById('padGrid');
+
+  const PAD_COUNT = 20;
+  const padEls = [];
+  const padCanvases = [];
+  const padBuffers = new Array(PAD_COUNT).fill(null);
+  const padBusy = new Array(PAD_COUNT).fill(false);
+
+  for(let i=0;i<PAD_COUNT;i++){
+    const btn = document.createElement('button');
+    btn.className = 'pad';
+    btn.disabled = true;
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'Percussion ' + (i+1));
+    const num = document.createElement('span');
+    num.className = 'pad-num';
+    num.textContent = String(i+1).padStart(2,'0');
+    const cv = document.createElement('canvas');
+    cv.width = 140; cv.height = 56;
+    btn.appendChild(cv);
+    btn.appendChild(num);
+    padGrid.appendChild(btn);
+    padEls.push(btn);
+    padCanvases.push(cv);
+  }
+
+  function ensureLiveCtx(){
+    if(!liveCtx){
+      liveCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if(liveCtx.state === 'suspended') liveCtx.resume();
+  }
+
+  // ---------- file loading ----------
+  function loadFile(file){
+    ensureLiveCtx();
+    const reader = new FileReader();
+    reader.onload = function(e){
+      liveCtx.decodeAudioData(e.target.result).then(function(buf){
+        originalBuffer = buf;
+        reversedBuffer = makeReversedBuffer(buf);
+        analysis = analyzeBuffer(buf);
+        dzFile.textContent = '✓ ' + file.name;
+        padEls.forEach(function(b){ b.disabled = false; });
+        regenerateAllPads();
+      }).catch(function(err){
+        console.error(err);
+        statusText.textContent = "Impossible de lire ce fichier — essaie un .wav ou .mp3";
+      });
+    };
+    reader.onerror = function(){
+      statusText.textContent = "Erreur de lecture du fichier.";
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  dropzone.addEventListener('click', function(){ fileInput.click(); });
+  fileInput.addEventListener('change', function(e){
+    if(e.target.files && e.target.files[0]) loadFile(e.target.files[0]);
+  });
+  dropzone.addEventListener('dragover', function(e){
+    e.preventDefault(); dropzone.classList.add('dragover');
+  });
+  dropzone.addEventListener('dragleave', function(){
+    dropzone.classList.remove('dragover');
+  });
+  dropzone.addEventListener('drop', function(e){
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    if(e.dataTransfer.files && e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+  });
+
+  // ---------- small math helpers ----------
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+  function rnd(a,b){ return a + Math.random()*(b-a); }
+  function jitter(base, pct){ return base * (1 + rnd(-pct, pct)); }
+  // choix structurel aléatoire : change la NATURE du son (pas juste un détail)
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function chance(p){ return Math.random() < p; }
+  // pioche un point de départ aléatoire dans le son importé, pour que chaque
+  // couche entende un morceau différent du fichier d'origine à chaque clic
+  function randomOffset(buffer, maxFrac){
+    if(!buffer) return 0;
+    maxFrac = maxFrac===undefined ? 0.6 : maxFrac;
+    const dur = buffer.duration;
+    const span = Math.max(0, dur*maxFrac - 0.01);
+    return span > 0 ? Math.random()*span : 0;
+  }
+  function safeStart(src, offset){
+    try{ src.start(0, offset||0); }catch(e){ try{ src.start(0); }catch(e2){} }
+  }
+
+  // ---------- FFT (radix-2, in-place) ----------
+  function fftInPlace(re, im){
+    const n = re.length;
+    for(let i=1, j=0; i<n; i++){
+      let bit = n >> 1;
+      for(; j & bit; bit >>= 1) j ^= bit;
+      j ^= bit;
+      if(i < j){
+        let tr = re[i]; re[i] = re[j]; re[j] = tr;
+        let ti = im[i]; im[i] = im[j]; im[j] = ti;
+      }
+    }
+    for(let len=2; len<=n; len <<= 1){
+      const ang = -2*Math.PI/len;
+      const wr0 = Math.cos(ang), wi0 = Math.sin(ang);
+      for(let i=0; i<n; i+=len){
+        let curWr = 1, curWi = 0;
+        const half = len/2;
+        for(let k=0; k<half; k++){
+          const ur = re[i+k], ui = im[i+k];
+          const vr = re[i+k+half]*curWr - im[i+k+half]*curWi;
+          const vi = re[i+k+half]*curWi + im[i+k+half]*curWr;
+          re[i+k] = ur+vr; im[i+k] = ui+vi;
+          re[i+k+half] = ur-vr; im[i+k+half] = ui-vi;
+          const nwr = curWr*wr0 - curWi*wi0;
+          const nwi = curWr*wi0 + curWi*wr0;
+          curWr = nwr; curWi = nwi;
+        }
+      }
+    }
+  }
+
+  // ---------- analyse spectrale du son importé ----------
+  // Détermine la fréquence fondamentale grave, la brillance (contenu haute
+  // fréquence) et le "crest factor" (caractère transitoire/percussif) du
+  // son importé afin que chaque percussion générée se base réellement sur
+  // le fichier fourni plutôt que sur des réglages génériques.
+  function analyzeBuffer(buffer){
+    const data = buffer.getChannelData(0);
+    const sr = buffer.sampleRate;
+    let N = 1024;
+    while(N*2 <= data.length && N < 16384) N *= 2;
+    const re = new Float32Array(N);
+    const im = new Float32Array(N);
+    const len = Math.min(N, data.length);
+    for(let i=0; i<len; i++){
+      const w = 0.5 - 0.5*Math.cos(2*Math.PI*i/Math.max(1,len-1));
+      re[i] = data[i]*w;
+    }
+    fftInPlace(re, im);
+    const half = N/2;
+    const mag = new Float32Array(half);
+    for(let i=0; i<half; i++) mag[i] = Math.hypot(re[i], im[i]);
+    const freqRes = sr/N;
+
+    let num=0, den=0;
+    for(let i=1; i<half; i++){ const f=i*freqRes; num += f*mag[i]; den += mag[i]; }
+    const centroid = den>0 ? num/den : 2000;
+
+    const loBin = Math.max(1, Math.floor(30/freqRes));
+    const hiBin = Math.min(half-1, Math.ceil(300/freqRes));
+    let bestI=-1, bestV=-1;
+    for(let i=loBin; i<=hiBin; i++){ if(mag[i] > bestV){ bestV = mag[i]; bestI = i; } }
+    const fundamental = bestI>0 ? bestI*freqRes : 60;
+
+    const midLoBin = Math.max(1, Math.floor(600/freqRes));
+    const midHiBin = Math.min(half-1, Math.ceil(3000/freqRes));
+    let bestMidI=-1, bestMidV=-1;
+    for(let i=midLoBin; i<=midHiBin; i++){ if(mag[i] > bestMidV){ bestMidV = mag[i]; bestMidI = i; } }
+    const midPeak = bestMidI>0 ? bestMidI*freqRes : 1200;
+
+    let hiE=0, totE=0;
+    for(let i=1; i<half; i++){ const f=i*freqRes; const e=mag[i]*mag[i]; totE += e; if(f>3000) hiE += e; }
+    const brightness = totE>0 ? clamp(hiE/totE, 0, 1) : 0.3;
+
+    let peak=0, sumSq=0;
+    for(let i=0; i<data.length; i++){ const v=Math.abs(data[i]); if(v>peak) peak=v; sumSq += v*v; }
+    const rms = Math.sqrt(sumSq/data.length) || 0.001;
+    const crest = clamp(peak/rms, 1, 6);
+
+    return { centroid: centroid, fundamental: fundamental, midPeak: midPeak, brightness: brightness, crest: crest };
+  }
+
+  // ---------- DSP helpers ----------
+  // inversion temporelle du sample, calculée une seule fois au chargement :
+  // permet un vrai layer "reverse" sans jamais synthétiser de nouveau son.
+  function makeReversedBuffer(buffer){
+    const rev = new AudioBuffer({
+      length: buffer.length,
+      numberOfChannels: buffer.numberOfChannels,
+      sampleRate: buffer.sampleRate
+    });
+    for(let ch=0; ch<buffer.numberOfChannels; ch++){
+      const src = buffer.getChannelData(ch);
+      const dst = rev.getChannelData(ch);
+      for(let i=0;i<src.length;i++) dst[i] = src[src.length-1-i];
+    }
+    return rev;
+  }
+
+  function makeImpulse(ctx, duration, decay){
+    const len = Math.max(1, Math.floor(duration * ctx.sampleRate));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for(let i=0;i<len;i++){
+      d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, decay);
+    }
+    return buf;
+  }
+
+  function makeSatCurve(drive, asym){
+    const k = Math.max(0.3, drive);
+    const a = asym || 0;
+    const n = 1024;
+    const curve = new Float32Array(n);
+    const norm = Math.tanh(k);
+    for(let i=0;i<n;i++){
+      const x = (i/(n-1))*2-1;
+      let y = Math.tanh(k*(x + a*x*x))/norm;
+      curve[i] = y;
+    }
+    return curve;
+  }
+
+  // enveloppe amplitude: attaque, palier (punch), puis chute en courbe de puissance
+  function makeEnvCurve(attack, hold, decay, curvePow){
+    curvePow = curvePow || 2;
+    const n = 512;
+    const total = attack+hold+decay;
+    const curve = new Float32Array(n);
+    for(let i=0;i<n;i++){
+      const t = (i/(n-1))*total;
+      if(t < attack){
+        curve[i] = attack>0 ? t/attack : 1;
+      } else if(t < attack+hold){
+        curve[i] = 1;
+      } else {
+        const dt = decay>0 ? (t-attack-hold)/decay : 1;
+        curve[i] = Math.pow(1-Math.min(dt,1), curvePow);
+      }
+    }
+    curve[n-1] = 0.0001;
+    return curve;
+  }
+
+  // variante de makeEnvCurve avec un pic mis à l'échelle (évite de fixer
+  // .gain.value après setValueCurveAtTime, ce qui casserait l'automation)
+  function scaledEnv(attack, hold, decay, curvePow, peak){
+    const c = makeEnvCurve(attack, hold, decay, curvePow);
+    if(peak !== undefined && peak !== 1){
+      for(let i=0;i<c.length;i++) c[i] *= peak;
+    }
+    return c;
+  }
+
+  function makePitchCurve(startF, endF, n){
+    const curve = new Float32Array(n);
+    const ratio = endF/startF;
+    for(let i=0;i<n;i++){
+      const t = i/(n-1);
+      curve[i] = startF * Math.pow(ratio, t);
+    }
+    return curve;
+  }
+
+  // wavefolder : distorsion par repliement, plus sale/anguleuse qu'un simple tanh
+  function makeFoldCurve(threshold){
+    const th = clamp(threshold, 0.08, 0.9);
+    const n = 1024;
+    const curve = new Float32Array(n);
+    for(let i=0;i<n;i++){
+      let x = (i/(n-1))*2-1;
+      let y = x;
+      let guard = 0;
+      while(Math.abs(y) > th && guard < 8){
+        y = y > th ? 2*th - y : -2*th - y;
+        guard++;
+      }
+      curve[i] = y/th;
+    }
+    return curve;
+  }
+
+  // bus de sortie "qui tape" : compression rapide + gain de makeup avant destination
+  function connectMaster(ctx, node, driveOut){
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -17;
+    comp.knee.value = 4;
+    comp.ratio.value = jitter(9, 0.2);
+    comp.attack.value = 0.0008;
+    comp.release.value = jitter(0.09, 0.3);
+    const out = ctx.createGain(); out.gain.value = driveOut===undefined ? 1.3 : driveOut;
+    node.connect(comp); comp.connect(out); out.connect(ctx.destination);
+  }
+
+  // normalise le pic du buffer rendu vers une cible proche de 0dB -> impact garanti
+  function normalizePeak(buffer, target){
+    target = target===undefined ? 0.95 : target;
+    let peak = 0;
+    for(let ch=0; ch<buffer.numberOfChannels; ch++){
+      const d = buffer.getChannelData(ch);
+      for(let i=0;i<d.length;i++){ const v=Math.abs(d[i]); if(v>peak) peak=v; }
+    }
+    if(peak > 0.0001){
+      const g = target/peak;
+      for(let ch=0; ch<buffer.numberOfChannels; ch++){
+        const d = buffer.getChannelData(ch);
+        for(let i=0;i<d.length;i++) d[i] *= g;
+      }
+    }
+    return buffer;
+  }
+
+  // bitcrush post-rendu (réduction de bits + sample & hold) pour un grain sale/lo-fi
+  function applyBitcrush(buffer, bitDepth, holdSamples){
+    const steps = Math.pow(2, clamp(bitDepth,3,16));
+    const hold = Math.max(1, Math.round(holdSamples||1));
+    for(let ch=0; ch<buffer.numberOfChannels; ch++){
+      const d = buffer.getChannelData(ch);
+      let held = 0;
+      for(let i=0;i<d.length;i++){
+        if(i % hold === 0) held = Math.round(d[i]*steps)/steps;
+        d[i] = held;
+      }
+    }
+    return buffer;
+  }
+
+  // rendu + post-traitement commun à toutes les percus : bitcrush optionnel puis normalisation
+  async function finishRender(ctx, opts){
+    opts = opts || {};
+    const buf = await ctx.startRendering();
+    if(opts.crush && chance(opts.crushChance===undefined?1:opts.crushChance)){
+      applyBitcrush(buf, opts.crushBits||9, opts.crushHold||2);
+    }
+    normalizePeak(buf, opts.peak===undefined?0.95:opts.peak);
+    return buf;
+  }
+
+  // ---------- moteur : transformation du son importé, pas de génération ----------
+  // Chaque percussion est construite EXCLUSIVEMENT à partir du sample importé
+  // (et de sa copie inversée temporellement, calculée une fois au chargement).
+  // Aucune couche n'est un oscillateur/bruit de synthèse : ce qui change le
+  // caractère d'une percu à l'autre, c'est uniquement la façon dont le sample
+  // est découpé, filtré, ré-enveloppé (attaque/maintien/chute forcés), et dont
+  // sa phase est retravaillée (allpass en cascade, éventuellement balayés,
+  // et mélange avec une copie retardée en feedback pour du comb-filtering).
+  // La saturation multi-étages et un boost de basses dérivé du sample lui-même
+  // (filtre passe-bas + distorsion asymétrique, qui génère les harmoniques
+  // graves manquantes) apportent le punch, sans jamais quitter le matériau
+  // d'origine.
+
+  function buildFromConfig(cfg){
+    return async function(){
+      const sr = originalBuffer.sampleRate;
+      const a = analysis;
+
+      const attack = cfg.attack;
+      const hold = jitter(cfg.hold, 0.3);
+      const decay = jitter(cfg.decay, 0.25);
+      const total = attack + hold + decay;
+      const revTail = cfg.revTail ? jitter(cfg.revTail, 0.3) : 0;
+      const tailPad = 0.1 + ((cfg.phaser && cfg.phaser.stages) ? 0.08 : 0) + ((cfg.comb && cfg.comb.enabled) ? 0.08 : 0);
+      const len = Math.max(2, Math.ceil((total + revTail + tailPad) * sr));
+      const ctx = new OfflineAudioContext(1, len, sr);
+
+      const mix = ctx.createGain();
+
+      // -- transient d'attaque : petit éclat sec pris littéralement au tout début
+      // du sample importé (l'attaque réelle du son d'origine), passe-haut et
+      // saturé, avec une enveloppe quasi instantanée : renforce l'agressivité
+      // de l'attaque sur TOUTES les percussions sans ajouter de synthèse --
+      const clickSrc = ctx.createBufferSource(); clickSrc.buffer = originalBuffer;
+      clickSrc.playbackRate.value = jitter(2.0, 0.25);
+      const clickHp = ctx.createBiquadFilter(); clickHp.type = 'highpass';
+      clickHp.frequency.value = clamp(jitter(900 + a.brightness*2500, 0.25), 300, sr*0.45);
+      const clickShaper = ctx.createWaveShaper();
+      clickShaper.curve = makeSatCurve(jitter(3.4, 0.25), 0.22);
+      clickShaper.oversample = '2x';
+      const clickEnv = ctx.createGain();
+      const clickDur = jitter(0.007, 0.3);
+      const clickGain = cfg.attackClick !== undefined ? cfg.attackClick : 0.55;
+      clickEnv.gain.setValueCurveAtTime(scaledEnv(0.00015, 0, clickDur, 3.4, jitter(clickGain, 0.2)), 0, 0.00015+clickDur);
+      clickSrc.connect(clickHp); clickHp.connect(clickShaper); clickShaper.connect(clickEnv); clickEnv.connect(mix);
+      safeStart(clickSrc, 0); // le tout début du sample = la vraie attaque du son importé
+
+      // -- couches directement issues du sample (offset/vitesse/filtre variables) --
+      cfg.layers.forEach(function(layer){
+        const buf = layer.reverse ? reversedBuffer : originalBuffer;
+        const src = ctx.createBufferSource(); src.buffer = buf;
+        if(layer.pitchBend){
+          const bendDur = jitter(layer.pitchBend.dur !== undefined ? layer.pitchBend.dur : total*0.6, 0.3);
+          src.playbackRate.setValueAtTime(jitter(layer.pitchBend.from, 0.15), 0);
+          src.playbackRate.linearRampToValueAtTime(jitter(layer.pitchBend.to, 0.15), bendDur);
+        } else {
+          src.playbackRate.value = jitter(layer.rate, 0.15);
+        }
+        let node = src;
+        if(layer.filter){
+          const f = ctx.createBiquadFilter();
+          f.type = layer.filter;
+          f.frequency.value = clamp(jitter(layer.freq(a), 0.22), 30, sr*0.45);
+          f.Q.value = jitter(layer.q || 1, 0.3);
+          node.connect(f); node = f;
+        }
+        if(layer.invert){
+          const inv = ctx.createGain(); inv.gain.value = -1;
+          node.connect(inv); node = inv;
+        }
+        const holdL = hold * (layer.holdMul !== undefined ? layer.holdMul : 1);
+        const decayL = decay * (layer.decayMul !== undefined ? layer.decayMul : 1);
+        const g = ctx.createGain();
+        g.gain.setValueCurveAtTime(scaledEnv(attack, holdL, decayL, cfg.curvePow, layer.gain), 0, attack+holdL+decayL);
+        node.connect(g); g.connect(mix);
+        safeStart(src, randomOffset(buf, layer.offsetMax !== undefined ? layer.offsetMax : 0.75));
+      });
+
+      // -- renfort de basses : copie du sample filtrée passe-bas + saturation
+      // asymétrique (génère les harmoniques graves manquantes), pas de sub sinus --
+      if(cfg.sub && cfg.sub.enabled){
+        const subSrc = ctx.createBufferSource(); subSrc.buffer = originalBuffer;
+        subSrc.playbackRate.value = jitter(cfg.sub.rate, 0.15);
+        const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
+        lp.frequency.value = clamp(jitter(cfg.sub.cutoff(a), 0.2), 35, 220);
+        const subDrive = ctx.createWaveShaper();
+        subDrive.curve = makeSatCurve(jitter(cfg.sub.drive, 0.2), 0.32);
+        subDrive.oversample = '4x';
+        const decayL = decay * (cfg.sub.decayMul !== undefined ? cfg.sub.decayMul : 1);
+        const subEnv = ctx.createGain();
+        subEnv.gain.setValueCurveAtTime(scaledEnv(attack, hold, decayL, cfg.curvePow, cfg.sub.gain), 0, attack+hold+decayL);
+        subSrc.connect(lp); lp.connect(subDrive); subDrive.connect(subEnv); subEnv.connect(mix);
+        safeStart(subSrc, randomOffset(originalBuffer, 0.7));
+      }
+
+      // -- réseau de phase : allpass en cascade (éventuellement balayés par un
+      // LFO), modifie la phase relative des fréquences sans toucher au spectre
+      // d'amplitude — un vrai traitement de phase, pas un filtre classique --
+      let chainEnd = mix;
+      if(cfg.phaser && cfg.phaser.stages > 0){
+        let node = chainEnd;
+        let lfoDepth = null;
+        if(cfg.phaser.sweep){
+          const lfo = ctx.createOscillator(); lfo.type = 'sine';
+          lfo.frequency.value = jitter(cfg.phaser.sweepRate, 0.3);
+          lfoDepth = ctx.createGain(); lfoDepth.gain.value = jitter(cfg.phaser.spread*0.5, 0.3);
+          lfo.connect(lfoDepth);
+          lfo.start(0); lfo.stop(total+revTail+tailPad);
+        }
+        for(let s=0; s<cfg.phaser.stages; s++){
+          const ap = ctx.createBiquadFilter(); ap.type = 'allpass';
+          ap.frequency.value = clamp(jitter(cfg.phaser.baseFreq(a) * Math.pow(1.55, s), 0.25), 60, sr*0.45);
+          ap.Q.value = jitter(0.7, 0.3);
+          if(lfoDepth) lfoDepth.connect(ap.frequency);
+          node.connect(ap); node = ap;
+        }
+        chainEnd = node;
+      }
+
+      // -- comb/phase courte : mélange avec une copie retardée en feedback,
+      // crée une annulation/renforcement de phase à certaines fréquences --
+      if(cfg.comb && cfg.comb.enabled){
+        const delay = ctx.createDelay(0.05);
+        delay.delayTime.value = jitter(cfg.comb.delayMs/1000, 0.3);
+        const fb = ctx.createGain(); fb.gain.value = jitter(cfg.comb.feedback, 0.3);
+        const combGain = ctx.createGain();
+        combGain.gain.value = (cfg.comb.invert ? -1 : 1) * jitter(cfg.comb.mix, 0.3);
+        const combOut = ctx.createGain();
+        chainEnd.connect(delay); delay.connect(fb); fb.connect(delay);
+        chainEnd.connect(combOut);
+        delay.connect(combGain); combGain.connect(combOut);
+        chainEnd = combOut;
+      }
+
+      // -- saturation multi-étages (punch) + repliement optionnel (grain plus sale) --
+      const drive1 = ctx.createWaveShaper();
+      drive1.curve = makeSatCurve(jitter(cfg.sat.drive1, 0.22), cfg.sat.asym1 !== undefined ? cfg.sat.asym1 : 0.2);
+      drive1.oversample = '4x';
+      chainEnd.connect(drive1);
+      let afterSat = drive1;
+      if(cfg.sat.foldAmt){
+        const fold = ctx.createWaveShaper();
+        fold.curve = makeFoldCurve(jitter(cfg.sat.foldAmt, 0.25));
+        fold.oversample = '4x';
+        drive1.connect(fold); afterSat = fold;
+      }
+      const drive2 = ctx.createWaveShaper();
+      drive2.curve = makeSatCurve(jitter(cfg.sat.drive2, 0.22), cfg.sat.asym2 !== undefined ? cfg.sat.asym2 : 0.28);
+      drive2.oversample = '4x';
+      afterSat.connect(drive2);
+
+      // -- boost de basses (peaking EQ) pour plus de coffre/punch --
+      let afterEq = drive2;
+      if(cfg.bassBoost){
+        const bass = ctx.createBiquadFilter(); bass.type = 'peaking';
+        bass.frequency.value = jitter(cfg.bassBoost.freq, 0.2);
+        bass.Q.value = 0.9;
+        bass.gain.value = jitter(cfg.bassBoost.db, 0.2);
+        drive2.connect(bass); afterEq = bass;
+      }
+
+      const finalMix = ctx.createGain();
+      afterEq.connect(finalMix);
+      if(revTail > 0.02){
+        const conv = ctx.createConvolver();
+        conv.buffer = makeImpulse(ctx, revTail, jitter(cfg.revDecay || 1.7, 0.25));
+        const wet = ctx.createGain(); wet.gain.value = jitter(cfg.revWet || 0.22, 0.3);
+        afterEq.connect(conv); conv.connect(wet); wet.connect(finalMix);
+      }
+
+      connectMaster(ctx, finalMix, jitter(cfg.outGain || 1.3, 0.15));
+
+      return finishRender(ctx, {
+        crush: cfg.crush ? chance(cfg.crush.chance !== undefined ? cfg.crush.chance : 0.3) : false,
+        crushChance: 1,
+        crushBits: cfg.crush ? (cfg.crush.bits || 8) : 8,
+        crushHold: cfg.crush ? (cfg.crush.hold || 2) : 2,
+        peak: cfg.peak !== undefined ? cfg.peak : 0.96
+      });
+    };
+  }
+
+  // ---------- 20 traitements très différents du même sample ----------
+  const FLAVOR_CONFIGS = [
+    // 1. BOOM grave — corps du sample très filtré passe-bas + renfort de basses
+    { attack:0.0008, hold:0.02, decay:0.5, curvePow:1.8, attackClick:0.6,
+      layers:[
+        {rate:0.28, filter:'lowpass', freq:function(a){return clamp(a.fundamental*4,120,500);}, q:0.7, gain:0.85, offsetMax:0.7},
+        {rate:0.16, filter:'bandpass', freq:function(a){return clamp(a.fundamental*2,60,300);}, q:1.1, gain:0.4, decayMul:0.75, offsetMax:0.85}
+      ],
+      sub:{enabled:true, rate:0.18, cutoff:function(a){return clamp(a.fundamental*0.7,40,90);}, drive:1.5, gain:0.9, decayMul:1.1},
+      sat:{drive1:2.4, asym1:0.16, foldAmt:0, drive2:1.8, asym2:0.22},
+      bassBoost:{freq:75, db:6}, revTail:0.12, revDecay:2.1, revWet:0.16, outGain:1.4, peak:0.97 },
+
+    // 2. KICK punchy — transitoire net + fold
+    { attack:0.0006, hold:0.006, decay:0.19, curvePow:2.0, attackClick:0.8,
+      layers:[
+        {rate:0.32, filter:'lowpass', freq:function(a){return clamp(a.fundamental*3.4,150,650);}, q:0.8, gain:0.9, offsetMax:0.7},
+        {rate:1.7, filter:'bandpass', freq:function(a){return 800+a.brightness*3000;}, q:1.0, gain:0.55, holdMul:0, decayMul:0.15, offsetMax:0.3}
+      ],
+      sub:{enabled:true, rate:0.24, cutoff:function(a){return clamp(a.fundamental*0.9,45,100);}, drive:2.1, gain:0.75, decayMul:0.8},
+      sat:{drive1:3.4, asym1:0.2, foldAmt:0.35, drive2:2.2, asym2:0.28},
+      bassBoost:{freq:85, db:7}, revTail:0.05, revDecay:1.6, revWet:0.12,
+      crush:{chance:0.35, bits:9, hold:2}, outGain:1.45, peak:0.97 },
+
+    // 3. THUD mat — mi-grave, léger comb pour un corps sourd
+    { attack:0.0009, hold:0.01, decay:0.3, curvePow:1.7, attackClick:0.6,
+      layers:[
+        {rate:0.4, filter:'lowpass', freq:function(a){return clamp(a.fundamental*5,180,700);}, q:0.7, gain:0.85, offsetMax:0.75},
+        {rate:0.55, filter:'bandpass', freq:function(a){return clamp(a.midPeak*0.6,250,1200);}, q:1.3, gain:0.35, decayMul:0.6, offsetMax:0.6}
+      ],
+      comb:{enabled:true, delayMs:9, feedback:0.25, mix:0.3, invert:false},
+      sat:{drive1:2.8, asym1:0.18, foldAmt:0, drive2:2.0, asym2:0.24},
+      bassBoost:{freq:100, db:5}, revTail:0.14, revDecay:1.9, revWet:0.18, outGain:1.35, peak:0.96 },
+
+    // 4. SNAP tonale — corps + crack aigu, léger phaser
+    { attack:0.0006, hold:0.004, decay:0.1, curvePow:2.1, attackClick:0.75,
+      layers:[
+        {rate:0.55, filter:'bandpass', freq:function(a){return clamp(a.fundamental*1.4,150,320);}, q:1.3, gain:0.85, offsetMax:0.6},
+        {rate:2.4, filter:'highpass', freq:function(a){return 2600+a.brightness*3200;}, q:0.9, gain:0.5, decayMul:0.7, offsetMax:0.4}
+      ],
+      phaser:{stages:2, baseFreq:function(a){return clamp(a.midPeak,600,2000);}, spread:400, sweep:false},
+      sat:{drive1:2.6, asym1:0.16, foldAmt:0, drive2:2.0, asym2:0.24},
+      bassBoost:{freq:130, db:4}, revTail:0.09, revDecay:1.8, revWet:0.2, outGain:1.3, peak:0.96 },
+
+    // 5. CRACK sec — comb inversé (annulation de phase ciblée)
+    { attack:0.0005, hold:0.003, decay:0.13, curvePow:2.3, attackClick:0.7,
+      layers:[
+        {rate:2.0, filter:'highpass', freq:function(a){return 3000+a.brightness*3500;}, q:0.8, gain:0.75, offsetMax:0.45},
+        {rate:0.7, filter:'bandpass', freq:function(a){return clamp(a.midPeak,700,2400);}, q:1.5, gain:0.4, decayMul:0.6, offsetMax:0.6}
+      ],
+      comb:{enabled:true, delayMs:3.2, feedback:0.2, mix:0.4, invert:true},
+      sat:{drive1:3.0, asym1:0.2, foldAmt:0.2, drive2:2.1, asym2:0.26},
+      revTail:0.08, revDecay:1.7, revWet:0.16, outGain:1.3, peak:0.95 },
+
+    // 6. BUZZ phasé — phaser à balayage marqué
+    { attack:0.0008, hold:0.01, decay:0.24, curvePow:1.8, attackClick:0.6,
+      layers:[
+        {rate:1.5, filter:'bandpass', freq:function(a){return clamp(a.midPeak,700,2600);}, q:1.5, gain:0.8, offsetMax:0.65},
+        {rate:0.9, filter:'highpass', freq:function(){return 1800;}, q:0.8, gain:0.4, decayMul:0.8, offsetMax:0.5}
+      ],
+      phaser:{stages:4, baseFreq:function(a){return clamp(a.midPeak*0.7,400,1400);}, spread:600, sweep:true, sweepRate:2.4},
+      sat:{drive1:3.2, asym1:0.22, foldAmt:0.3, drive2:2.0, asym2:0.28},
+      revTail:0.16, revDecay:1.8, revWet:0.22, outGain:1.3, peak:0.95 },
+
+    // 7. RING métallique — comb très court (résonance) + fold
+    { attack:0.0004, hold:0.002, decay:0.14, curvePow:1.9, attackClick:0.65,
+      layers:[
+        {rate:2.6, filter:'highpass', freq:function(a){return 4000+a.brightness*4000;}, q:1.0, gain:0.75, offsetMax:0.5},
+        {rate:3.4, filter:'bandpass', freq:function(a){return clamp(a.centroid*0.8,1500,6000);}, q:2.2, gain:0.5, decayMul:0.7, offsetMax:0.4}
+      ],
+      comb:{enabled:true, delayMs:1.1, feedback:0.45, mix:0.5, invert:false},
+      sat:{drive1:2.4, asym1:0.1, foldAmt:0.45, drive2:1.8, asym2:0.2},
+      revTail:0.1, revDecay:1.6, revWet:0.14, outGain:1.15, peak:0.9 },
+
+    // 8. TICK ultra-court — transitoire quasi sec
+    { attack:0.00012, hold:0.001, decay:0.02, curvePow:2.6, attackClick:0.4,
+      layers:[
+        {rate:3.6, filter:'highpass', freq:function(a){return 5500+a.brightness*4500;}, q:0.9, gain:0.9, offsetMax:0.55}
+      ],
+      sat:{drive1:1.8, asym1:0.06, foldAmt:0, drive2:1.4, asym2:0.1},
+      revTail:0, outGain:1.1, peak:0.88 },
+
+    // 9. GLASS clair — aigu, léger phaser
+    { attack:0.0004, hold:0.006, decay:0.08, curvePow:1.7, attackClick:0.45,
+      layers:[
+        {rate:2.1, filter:'highpass', freq:function(a){return 3600+a.brightness*3600;}, q:0.9, gain:0.85, offsetMax:0.6}
+      ],
+      phaser:{stages:2, baseFreq:function(a){return clamp(a.centroid,2000,6000);}, spread:800, sweep:true, sweepRate:1.2},
+      sat:{drive1:1.7, asym1:0.06, foldAmt:0, drive2:1.4, asym2:0.1},
+      revTail:0.1, revDecay:1.6, revWet:0.22, outGain:1.15, peak:0.9 },
+
+    // 10. WASH aéré — long, grande reverb, phaser lent
+    { attack:0.0006, hold:0.05, decay:1.0, curvePow:0.7, attackClick:0.35,
+      layers:[
+        {rate:1.8, filter:'highpass', freq:function(a){return 3000+a.brightness*3000;}, q:0.8, gain:0.85, offsetMax:0.6}
+      ],
+      phaser:{stages:3, baseFreq:function(a){return clamp(a.centroid*0.6,1200,3500);}, spread:900, sweep:true, sweepRate:0.5},
+      sat:{drive1:1.6, asym1:0.06, foldAmt:0, drive2:1.3, asym2:0.08},
+      revTail:0.55, revDecay:1.5, revWet:0.4, outGain:1.1, peak:0.87 },
+
+    // 11. BEND glissant — pitch-sweep + léger comb
+    { attack:0.0008, hold:0.003, decay:0.17, curvePow:2.0, attackClick:0.6,
+      layers:[
+        {pitchBend:{from:1.1, to:2.6, dur:0.15}, filter:'bandpass', freq:function(a){return clamp(a.midPeak,500,3000);}, q:1.4, gain:0.85, offsetMax:0.7}
+      ],
+      comb:{enabled:true, delayMs:12, feedback:0.3, mix:0.28, invert:false},
+      sat:{drive1:2.4, asym1:0.16, foldAmt:0, drive2:1.9, asym2:0.22},
+      revTail:0.15, revDecay:1.7, revWet:0.22, outGain:1.25, peak:0.94 },
+
+    // 12. SWELL inversé — sample joué à l'envers, montée puis coupure nette
+    { attack:0.14, hold:0.0, decay:0.05, curvePow:1.0, attackClick:0.15,
+      layers:[
+        {rate:0.6, filter:'bandpass', freq:function(a){return clamp(a.midPeak,400,2200);}, q:1.0, gain:0.9, reverse:true, offsetMax:0.5}
+      ],
+      sat:{drive1:1.9, asym1:0.1, foldAmt:0, drive2:1.5, asym2:0.12},
+      revTail:0.25, revDecay:1.8, revWet:0.3, outGain:1.2, peak:0.92 },
+
+    // 13. STUTTER glitché — enveloppe très courte + comb feedback élevé + bitcrush
+    { attack:0.0004, hold:0.002, decay:0.05, curvePow:2.5, attackClick:0.7,
+      layers:[
+        {rate:1.3, filter:'bandpass', freq:function(a){return clamp(a.midPeak,400,2600);}, q:1.6, gain:0.85, offsetMax:0.8}
+      ],
+      comb:{enabled:true, delayMs:6, feedback:0.65, mix:0.5, invert:false},
+      sat:{drive1:3.0, asym1:0.2, foldAmt:0.4, drive2:2.2, asym2:0.3},
+      crush:{chance:0.85, bits:5, hold:3}, revTail:0.06, revDecay:1.5, revWet:0.12, outGain:1.3, peak:0.95 },
+
+    // 14. CRUSH replié — wavefolder + bitcrush lourd
+    { attack:0.0006, hold:0.004, decay:0.15, curvePow:2.1, attackClick:0.65,
+      layers:[
+        {rate:0.85, filter:'bandpass', freq:function(a){return clamp(a.midPeak,500,2400);}, q:1.2, gain:0.9, offsetMax:0.7}
+      ],
+      sat:{drive1:2.6, asym1:0.18, foldAmt:0.55, drive2:2.4, asym2:0.32},
+      crush:{chance:0.9, bits:6, hold:3}, revTail:0.08, revDecay:1.6, revWet:0.14, outGain:1.3, peak:0.95 },
+
+    // 15. PHASE ambiante — nombreux étages allpass, sweep lent, texture longue
+    { attack:0.0025, hold:0.05, decay:0.9, curvePow:0.9, attackClick:0.3,
+      layers:[
+        {rate:0.5, filter:'bandpass', freq:function(a){return clamp(a.midPeak*0.8,300,1800);}, q:1.0, gain:0.85, offsetMax:0.6}
+      ],
+      phaser:{stages:6, baseFreq:function(a){return clamp(a.fundamental*3,200,900);}, spread:700, sweep:true, sweepRate:0.35},
+      sat:{drive1:1.8, asym1:0.08, foldAmt:0, drive2:1.4, asym2:0.1},
+      revTail:0.5, revDecay:1.6, revWet:0.35, outGain:1.15, peak:0.9 },
+
+    // 16. GROWL grave — très saturé et asymétrique
+    { attack:0.0012, hold:0.015, decay:0.34, curvePow:1.6, attackClick:0.7,
+      layers:[
+        {rate:0.3, filter:'lowpass', freq:function(a){return clamp(a.fundamental*3.5,110,450);}, q:0.9, gain:0.9, offsetMax:0.7}
+      ],
+      sub:{enabled:true, rate:0.2, cutoff:function(a){return clamp(a.fundamental*0.65,40,85);}, drive:2.6, gain:1.0, decayMul:1.0},
+      sat:{drive1:4.2, asym1:0.4, foldAmt:0.15, drive2:2.8, asym2:0.42},
+      bassBoost:{freq:70, db:7}, revTail:0.1, revDecay:1.9, revWet:0.15, outGain:1.45, peak:0.97 },
+
+    // 17. PERC clic — transitoire net + comb léger
+    { attack:0.0004, hold:0.002, decay:0.09, curvePow:2.2, attackClick:0.75,
+      layers:[
+        {rate:1.6, filter:'bandpass', freq:function(a){return clamp(a.midPeak,500,2800);}, q:1.5, gain:0.9, offsetMax:0.55}
+      ],
+      comb:{enabled:true, delayMs:5, feedback:0.2, mix:0.25, invert:false},
+      sat:{drive1:2.3, asym1:0.14, foldAmt:0, drive2:1.8, asym2:0.2},
+      revTail:0.09, revDecay:1.7, revWet:0.18, outGain:1.25, peak:0.95 },
+
+    // 18. BELL aérienne — résonance à Q élevé façon cloche, phaser subtil
+    { attack:0.0015, hold:0.01, decay:0.6, curvePow:1.2, attackClick:0.4,
+      layers:[
+        {rate:1.1, filter:'bandpass', freq:function(a){return clamp(a.midPeak*1.3,600,3200);}, q:6.5, gain:0.9, offsetMax:0.55}
+      ],
+      phaser:{stages:2, baseFreq:function(a){return clamp(a.midPeak,600,2400);}, spread:500, sweep:true, sweepRate:0.8},
+      sat:{drive1:1.6, asym1:0.06, foldAmt:0, drive2:1.3, asym2:0.08},
+      revTail:0.3, revDecay:1.7, revWet:0.3, outGain:1.15, peak:0.9 },
+
+    // 19. DARK wash — long, sombre, sub renforcé, phaser lent, grande reverb
+    { attack:0.0018, hold:0.06, decay:1.2, curvePow:0.9, attackClick:0.3,
+      layers:[
+        {rate:0.35, filter:'lowpass', freq:function(a){return clamp(a.fundamental*3,150,600);}, q:0.8, gain:0.85, offsetMax:0.6}
+      ],
+      sub:{enabled:true, rate:0.2, cutoff:function(a){return clamp(a.fundamental*0.7,40,90);}, drive:1.6, gain:0.7, decayMul:1.1},
+      phaser:{stages:3, baseFreq:function(a){return clamp(a.fundamental*2.5,150,700);}, spread:500, sweep:true, sweepRate:0.3},
+      sat:{drive1:2.0, asym1:0.12, foldAmt:0, drive2:1.6, asym2:0.16},
+      bassBoost:{freq:80, db:5}, revTail:0.7, revDecay:1.6, revWet:0.4, outGain:1.25, peak:0.93 },
+
+    // 20. CHAOS blast — combo agressif : fold + phaser + comb + bitcrush
+    { attack:0.0004, hold:0.004, decay:0.13, curvePow:2.0, attackClick:0.85,
+      layers:[
+        {rate:1.4, filter:'bandpass', freq:function(a){return clamp(a.midPeak,500,2600);}, q:1.4, gain:0.85, offsetMax:0.7},
+        {rate:2.8, filter:'highpass', freq:function(a){return 3200+a.brightness*3500;}, q:0.9, gain:0.5, decayMul:0.5, offsetMax:0.4}
+      ],
+      phaser:{stages:3, baseFreq:function(a){return clamp(a.midPeak*0.9,500,1800);}, spread:700, sweep:true, sweepRate:3.2},
+      comb:{enabled:true, delayMs:4.5, feedback:0.4, mix:0.35, invert:true},
+      sat:{drive1:3.6, asym1:0.24, foldAmt:0.5, drive2:2.6, asym2:0.34},
+      crush:{chance:0.6, bits:6, hold:2}, bassBoost:{freq:95, db:5}, revTail:0.12, revDecay:1.7, revWet:0.18, outGain:1.4, peak:0.97 }
+  ];
+
+  function renderFlavor(idx){
+    const cfg = FLAVOR_CONFIGS[idx % FLAVOR_CONFIGS.length];
+    return buildFromConfig(cfg)();
+  }
+
+
+
+  // ---------- waveform ----------
+  function drawWaveform(canvas, buffer){
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h);
+    if(!buffer) return;
+    const data = buffer.getChannelData(0);
+    const step = Math.max(1, Math.ceil(data.length/w));
+    const amp = h/2;
+    ctx.strokeStyle = '#39ff6a';
+    ctx.shadowColor = '#39ff6a';
+    ctx.shadowBlur = 4;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(let x=0; x<w; x++){
+      let min=1, max=-1;
+      for(let j=0;j<step;j++){
+        const idx = x*step+j;
+        if(idx >= data.length) break;
+        const v = data[idx];
+        if(v<min) min=v;
+        if(v>max) max=v;
+      }
+      if(min>max){min=0;max=0;}
+      ctx.moveTo(x, (1+min)*amp);
+      ctx.lineTo(x, (1+max)*amp);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  // ---------- déclenchement des pads : clic = régénère (avec aléatoire) + joue direct ----------
+  // ---------- lecture : une seule percu à la fois, coupée net dès qu'une autre démarre ----------
+  function stopCurrentSound(){
+    if(currentSrc){
+      try{ currentSrc.onended = null; currentSrc.stop(0); }catch(e){}
+      currentSrc = null;
+    }
+    if(currentPlayingPad){
+      currentPlayingPad.classList.remove('playing');
+      currentPlayingPad = null;
+    }
+  }
+
+  function trackPlayback(src, padEl){
+    stopCurrentSound();
+    currentSrc = src;
+    currentPlayingPad = padEl;
+    padEl.classList.add('playing');
+    src.onended = function(){
+      if(currentSrc === src){
+        currentSrc = null;
+        currentPlayingPad = null;
+      }
+      padEl.classList.remove('playing');
+    };
+  }
+
+  async function generatePad(idx, autoplay){
+    if(!originalBuffer || padBusy[idx]) return;
+    stopCurrentSound();
+    padBusy[idx] = true;
+    const padEl = padEls[idx];
+    padEl.classList.add('playing');
+    try{
+      const buf = await renderFlavor(idx);
+      padBuffers[idx] = buf;
+      drawWaveform(padCanvases[idx], buf);
+      if(autoplay){
+        ensureLiveCtx();
+        const src = liveCtx.createBufferSource();
+        src.buffer = buf;
+        src.connect(liveCtx.destination);
+        trackPlayback(src, padEl);
+        src.start(0);
+      } else {
+        padEl.classList.remove('playing');
+      }
+    }catch(err){
+      console.error(err);
+      statusText.textContent = "Le traitement d'une percussion a échoué, réessaie.";
+      padEl.classList.remove('playing');
+    }
+    padBusy[idx] = false;
+  }
+
+  async function regenerateAllPads(){
+    btnExportAll.disabled = true;
+    for(let i=0;i<PAD_COUNT;i++){
+      statusText.textContent = 'Génération de la bibliothèque… (' + (i+1) + '/' + PAD_COUNT + ')';
+      await generatePad(i, false);
+    }
+    statusText.textContent = 'Bibliothèque prête — survole un pad pour l\'entendre, clique pour une variation';
+    btnExportAll.disabled = false;
+  }
+
+  function playPadBuffer(idx){
+    if(!padBuffers[idx]) return;
+    ensureLiveCtx();
+    const padEl = padEls[idx];
+    const src = liveCtx.createBufferSource();
+    src.buffer = padBuffers[idx];
+    src.connect(liveCtx.destination);
+    trackPlayback(src, padEl);
+    src.start(0);
+  }
+
+  padEls.forEach(function(btn, idx){
+    btn.addEventListener('mouseenter', function(){
+      if(!originalBuffer || padBusy[idx]) return;
+      playPadBuffer(idx);
+    });
+    btn.addEventListener('click', function(){
+      if(!originalBuffer){
+        statusText.textContent = 'Importe un son avant de générer les percussions.';
+        return;
+      }
+      statusText.textContent = 'Variation en cours…';
+      generatePad(idx, true).then(function(){
+        statusText.textContent = 'Pad ' + (idx+1) + ' — survole pour écouter, reclique pour une variation';
+      });
+    });
+  });
+
+  // ---------- wav export ----------
+  function bufferToWav(buffer){
+    const sr = buffer.sampleRate;
+    const data = buffer.getChannelData(0);
+    const dataSize = data.length*2;
+    const ab = new ArrayBuffer(44+dataSize);
+    const view = new DataView(ab);
+    function writeStr(offset, str){
+      for(let i=0;i<str.length;i++) view.setUint8(offset+i, str.charCodeAt(i));
+    }
+    writeStr(0,'RIFF');
+    view.setUint32(4, 36+dataSize, true);
+    writeStr(8,'WAVE');
+    writeStr(12,'fmt ');
+    view.setUint32(16,16,true);
+    view.setUint16(20,1,true);
+    view.setUint16(22,1,true);
+    view.setUint32(24,sr,true);
+    view.setUint32(28,sr*2,true);
+    view.setUint16(32,2,true);
+    view.setUint16(34,16,true);
+    writeStr(36,'data');
+    view.setUint32(40,dataSize,true);
+    let offset=44;
+    for(let i=0;i<data.length;i++){
+      let s = Math.max(-1, Math.min(1, data[i]));
+      s = s<0 ? s*0x8000 : s*0x7FFF;
+      view.setInt16(offset, s, true);
+      offset += 2;
+    }
+    return new Blob([ab], {type:'audio/wav'});
+  }
+
+  // ---------- zip (méthode "store", sans compression) ----------
+  const CRC_TABLE = (function(){
+    const t = new Uint32Array(256);
+    for(let n=0;n<256;n++){
+      let c=n;
+      for(let k=0;k<8;k++){ c = (c&1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1); }
+      t[n]=c>>>0;
+    }
+    return t;
+  })();
+  function crc32(bytes){
+    let c = 0xFFFFFFFF;
+    for(let i=0;i<bytes.length;i++){ c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8); }
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+
+  function makeZip(files){
+    const encoder = new TextEncoder();
+    const localParts = [];
+    const centralParts = [];
+    let offset = 0;
+
+    files.forEach(function(f){
+      const nameBytes = encoder.encode(f.name);
+      const data = f.data;
+      const crc = crc32(data);
+      const size = data.length;
+
+      const local = new Uint8Array(30 + nameBytes.length);
+      const lv = new DataView(local.buffer);
+      lv.setUint32(0, 0x04034b50, true);
+      lv.setUint16(4, 20, true);
+      lv.setUint16(6, 0, true);
+      lv.setUint16(8, 0, true);
+      lv.setUint16(10, 0, true);
+      lv.setUint16(12, 0, true);
+      lv.setUint32(14, crc, true);
+      lv.setUint32(18, size, true);
+      lv.setUint32(22, size, true);
+      lv.setUint16(26, nameBytes.length, true);
+      lv.setUint16(28, 0, true);
+      local.set(nameBytes, 30);
+      localParts.push(local, data);
+
+      const central = new Uint8Array(46 + nameBytes.length);
+      const cv = new DataView(central.buffer);
+      cv.setUint32(0, 0x02014b50, true);
+      cv.setUint16(4, 20, true);
+      cv.setUint16(6, 20, true);
+      cv.setUint16(8, 0, true);
+      cv.setUint16(10, 0, true);
+      cv.setUint16(12, 0, true);
+      cv.setUint16(14, 0, true);
+      cv.setUint32(16, crc, true);
+      cv.setUint32(20, size, true);
+      cv.setUint32(24, size, true);
+      cv.setUint16(28, nameBytes.length, true);
+      cv.setUint16(30, 0, true);
+      cv.setUint16(32, 0, true);
+      cv.setUint16(34, 0, true);
+      cv.setUint16(36, 0, true);
+      cv.setUint32(38, 0, true);
+      cv.setUint32(42, offset, true);
+      central.set(nameBytes, 46);
+      centralParts.push(central);
+
+      offset += local.length + data.length;
+    });
+
+    const centralStart = offset;
+    let centralSize = 0;
+    centralParts.forEach(function(c){ centralSize += c.length; });
+
+    const end = new Uint8Array(22);
+    const ev = new DataView(end.buffer);
+    ev.setUint32(0, 0x06054b50, true);
+    ev.setUint16(4, 0, true);
+    ev.setUint16(6, 0, true);
+    ev.setUint16(8, files.length, true);
+    ev.setUint16(10, files.length, true);
+    ev.setUint32(12, centralSize, true);
+    ev.setUint32(16, centralStart, true);
+    ev.setUint16(20, 0, true);
+
+    return new Blob(localParts.concat(centralParts, [end]), {type:'application/zip'});
+  }
+
+  btnExportAll.addEventListener('click', async function(){
+    if(padBuffers.some(function(b){ return !b; })){
+      statusText.textContent = 'Attends la fin de la génération avant de télécharger.';
+      return;
+    }
+    btnExportAll.disabled = true;
+    statusText.textContent = 'Préparation du pack .zip…';
+    try{
+      const files = [];
+      for(let i=0;i<PAD_COUNT;i++){
+        const blob = bufferToWav(padBuffers[i]);
+        const ab = await blob.arrayBuffer();
+        files.push({ name: 'makeitdrum_' + String(i+1).padStart(2,'0') + '.wav', data: new Uint8Array(ab) });
+      }
+      const zipBlob = makeZip(files);
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'makeitdrum_pack.zip';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      statusText.textContent = 'Pack téléchargé — 10 fichiers .wav dans un .zip.';
+    }catch(err){
+      console.error(err);
+      statusText.textContent = "Échec de la création du pack .zip, réessaie.";
+    }
+    btnExportAll.disabled = false;
+  });
+
+})();
+</script>
+</body>
+</html>
