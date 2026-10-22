@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1 — 2026-10-22 · « Crédit à l'auteur »
+
+- **Crédit bien visible** sous le titre de l'application : lien vers la page de l'auteur, Masao « Saiya Geez » (https://beacons.ai/saiyageez), en bouton bleu XP cliquable.
+- README, `package.json` et licence MIT reportent la paternité du projet à Masao « Saiya Geez ».
+- Test de cohérence supplémentaire : le lien de crédit doit être présent et pointer vers la bonne page.
+
 ## 1.0.0 — 2026-10-22 · « Première publication »
 
 - **Moteur procédural de percussions** : un seul son importé (wav / mp3 / ogg…) devient un kit de 20 percussions très différentes — BOOM, KICK, THUD, SNAP, CRACK, BUZZ, RING, TICK, GLASS, WASH, BEND, SWELL, STUTTER, CRUSH, PHASE, GROWL, PERC, BELL, DARK, CHAOS.

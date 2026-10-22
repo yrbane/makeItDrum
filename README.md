@@ -1,5 +1,7 @@
 # make it drum.exe 🥁🪟
 
+**Un projet de [Masao « Saiya Geez »](https://beacons.ai/saiyageez)** 🥁 — [beacons.ai/saiyageez](https://beacons.ai/saiyageez)
+
 > **N'importe quel son devient un kit de batterie.**
 > Glisse un fichier audio (un claquement de porte, une voix, une casserole, un synthé…) et make it drum en tire **20 percussions radicalement différentes** — rendues en temps réel par un moteur Web Audio procédural, dans une fenêtre Windows XP qui bouge avec ta souris.
 
@@ -22,6 +24,7 @@
 - [Compatibilité navigateurs](#compatibilité-navigateurs)
 - [Développement](#développement)
 - [Conventions du projet](#conventions-du-projet)
+- [Crédits](#crédits)
 - [Licence](#licence)
 
 ---
@@ -118,6 +121,11 @@ La CI (GitHub Actions) lance les tests à chaque push et déploie `index.html` s
 - Chaque commit porte une version SemVer, reportée dans `package.json`, dans le badge de l'interface et dans [`CHANGELOG.md`](CHANGELOG.md).
 - Principes : TDD, SOLID, DRY, KISS, YAGNI.
 
+## Crédits
+
+- **Auteur** : [Masao « Saiya Geez »](https://beacons.ai/saiyageez) — concept, design et moteur sonore.
+- Publication, tests et CI : [yrbane](https://github.com/yrbane).
+
 ## Licence
 
-[MIT](LICENSE) — © 2026 yrbane
+[MIT](LICENSE) — © 2026 Masao « Saiya Geez »

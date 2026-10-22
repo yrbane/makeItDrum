@@ -35,3 +35,11 @@ test('le document est en français, encodé en UTF-8, avec un titre', () => {
   assert.match(html, /<meta charset="UTF-8">/);
   assert.match(html, /<title>make it drum\.exe<\/title>/);
 });
+
+test('le crédit à l\'auteur est affiché sous le titre et pointe vers sa page', () => {
+  const idx = html.indexOf('class="credit"');
+  assert.ok(idx > 0, 'bloc de crédit introuvable');
+  assert.ok(idx > html.indexOf('class="tagline"'), 'le crédit doit suivre le titre');
+  assert.ok(idx < html.indexOf('id="dropzone"'), 'le crédit doit précéder la zone de dépôt');
+  assert.match(html, /class="credit">[^<]*<a href="https:\/\/beacons\.ai\/saiyageez"[^>]*>[^<]*Saiya Geez/);
+});

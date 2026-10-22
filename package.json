@@ -1,11 +1,12 @@
 {
   "name": "make-it-drum",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "N'importe quel son devient un kit de 20 percussions — moteur procédural Web Audio, sans dépendance, dans une fenêtre Windows XP.",
   "type": "module",
   "engines": { "node": ">=20" },
-  "author": "yrbane",
+  "author": "Masao « Saiya Geez » (https://beacons.ai/saiyageez)",
+  "contributors": ["yrbane"],
   "license": "MIT",
   "homepage": "https://yrbane.github.io/makeItDrum/",
   "repository": {
