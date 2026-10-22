@@ -43,7 +43,11 @@ function start(doc, win) {
     pads,
     status: { set: function (t) { el.statusText.textContent = t; } },
     fileLabel: { set: function (t) { el.dzFile.textContent = t; } },
-    exportButton: el.btnExportAll,
+    // les deux boutons d'export suivent le même état
+    exportButton: {
+      get disabled() { return el.btnExportAll.disabled; },
+      set disabled(v) { el.btnExportAll.disabled = v; el.btnExportDaw.disabled = v; },
+    },
     renderer: createRenderer(),
     player: createPlayer(function () { return liveCtx.get(); }),
     polyPlayer: createPolyPlayer(function () { return liveCtx.get(); }),
@@ -76,6 +80,7 @@ function start(doc, win) {
     btn.addEventListener('click', function () { library.click(idx); });
   });
   el.btnExportAll.addEventListener('click', function () { library.exportKit(); });
+  el.btnExportDaw.addEventListener('click', function () { library.exportDaw(); });
   el.btnSaveKit.addEventListener('click', function () { library.saveKit(); });
   el.btnDeleteKit.addEventListener('click', function () { library.deleteKit(); });
   el.kitSelect.addEventListener('change', function () { liveCtx.get(); library.loadKit(el.kitSelect.value); });

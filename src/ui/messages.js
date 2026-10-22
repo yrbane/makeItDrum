@@ -14,6 +14,9 @@ export const MESSAGES = {
   zipError: 'Échec de la création du kit, réessaie.',
   // kits
   kitExported: (name) => 'Kit exporté — 20 .wav + kit.json dans « ' + name + '.kit.zip ».',
+  dawPreparing: 'Préparation du Drum Rack Ableton et du SFZ…',
+  dawExported: (name) => 'Exporté — « ' + name + '.ableton.zip » : ' + name + '.adg (Drum Rack), ' + name + '.sfz et Samples/.',
+  dawError: 'Échec de l\'export Ableton / SFZ, réessaie.',
   kitNamePrompt: 'Nom du kit :',
   kitSaved: (name) => 'Kit « ' + name + ' » sauvegardé dans ce navigateur.',
   kitLoaded: (name) => 'Kit « ' + name + ' » chargé — survole un pad pour l\'entendre.',
