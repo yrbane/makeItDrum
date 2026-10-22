@@ -4,9 +4,13 @@
   "private": true,
   "description": "N'importe quel son devient un kit de 20 percussions — moteur procédural Web Audio, sans dépendance, dans une fenêtre Windows XP.",
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "author": "Masao « Saiya Geez » (https://beacons.ai/saiyageez)",
-  "contributors": ["yrbane"],
+  "contributors": [
+    "yrbane"
+  ],
   "license": "MIT",
   "homepage": "https://yrbane.github.io/makeItDrum/",
   "repository": {
@@ -15,6 +19,13 @@
   },
   "scripts": {
     "test": "node --test \"tests/**/*.test.mjs\"",
-    "serve": "python3 -m http.server 8765"
+    "build": "node scripts/build.mjs",
+    "golden": "node scripts/golden.mjs",
+    "test:e2e": "node scripts/smoke.mjs",
+    "serve": "python3 -m http.server 8765 -d dist"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "puppeteer-core": "^25.16.0"
   }
 }
