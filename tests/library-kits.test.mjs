@@ -219,3 +219,23 @@ test('un kit chargé apporte ses notes au mapping', async () => {
   lib.noteOn(61, 1);
   assert.equal(played[0].voice, 1);
 });
+
+test('exportDaw télécharge <nom>.ableton.zip : Drum Rack .adg, .sfz et les WAV sous Samples/', async () => {
+  const { lib, deps, downloads } = setup();
+  await lib.exportDaw();
+  assert.equal(downloads.length, 0, 'rien sans bibliothèque');
+  await lib.load({ name: 'casserole.wav' });
+  await lib.exportDaw();
+  assert.equal(downloads.length, 1);
+  assert.equal(downloads[0].name, 'casserole.ableton.zip');
+  const entries = await readZip(new Uint8Array(await downloads[0].blob.arrayBuffer()));
+  const names = entries.map((e) => e.name);
+  assert.equal(names[0], 'casserole.adg');
+  assert.equal(names[1], 'casserole.sfz');
+  assert.equal(names[2], 'Samples/01_BOOM.wav');
+  assert.equal(names.length, 22);
+  assert.deepEqual([entries[0].data[0], entries[0].data[1]], [0x1f, 0x8b]);
+  const sfz = new TextDecoder().decode(entries[1].data);
+  assert.match(sfz, /sample=Samples\/20_CHAOS\.wav\nkey=55/);
+  assert.equal(deps.exportButton.disabled, false);
+});

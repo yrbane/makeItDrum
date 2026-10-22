@@ -46,7 +46,8 @@ Le tout dans une interface qui assume son côté rétro : fenêtre XP, barre de 
 4. **Survoler un pad** = écoute immédiate. **Cliquer** = nouvelle variation aléatoire de cette percussion, jouée aussitôt.
 5. **Jouer** : clavier `Q…P` (pads 1–10) et `A…;` (pads 11–20), ou bouton **MIDI** puis notes 36–55 depuis un clavier, un pad ou Live (Chrome/Edge ; Firefox via extension ; Safari : clavier seulement).
 6. **SAUVER** garde le kit dans le navigateur ; le select **change de kit à la volée** ; **IMPORTER…** lit un `.kit.zip`.
-7. **EXPORTER LE KIT (.KIT.ZIP)** : `kit.json` + les 20 sons `.wav` 16 bits, prêts pour le [plugin VST3 / CLAP](https://github.com/yrbane/makeItDrum-plugin), un sampler, un DAW ou une groovebox.
+7. **ABLETON / SFZ** : `<nom>.ableton.zip` avec un **Drum Rack Live 12** (`.adg`, 20 chaînes Simpler sur les notes 36–55), un **`.sfz`** et les WAV sous `Samples/` — dézipper, glisser le `.adg` dans Live ou le `.sfz` dans n'importe quel sampler SFZ.
+8. **EXPORTER LE KIT (.KIT.ZIP)** : `kit.json` + les 20 sons `.wav` 16 bits, prêts pour le [plugin VST3 / CLAP](https://github.com/yrbane/makeItDrum-plugin), un sampler, un DAW ou une groovebox.
 
 Au survol et au clic, une seule percussion joue à la fois : la suivante coupe net la précédente, comme sur une vraie boîte à rythmes. Au clavier et en MIDI, les pads se superposent (chaque pad coupe seulement sa propre lecture précédente).
 
@@ -123,7 +124,7 @@ Tout navigateur moderne avec Web Audio : Chrome / Chromium, Firefox, Edge, Safar
 npm ci            # dépendances de développement uniquement (esbuild, puppeteer-core)
 npm test          # tests unitaires du cœur, de l'audio, de l'UI, de l'orchestration et du build
 npm run build     # produit dist/index.html (bundle esbuild inliné dans le gabarit)
-node scripts/export-kit.mjs son.wav [kit.kit.zip]   # fabrique un kit en ligne de commande (Chromium headless)
+node scripts/export-kit.mjs son.wav [kit.kit.zip]   # fabrique un kit en ligne de commande (Chromium headless) ; --ableton pour le Drum Rack
 npm run test:e2e  # smoke E2E sur dist/index.html
 npm run serve     # sert dist/ sur http://localhost:8765
 ```
@@ -144,7 +145,7 @@ src/
   library.js   orchestration (import → rendu → lecture → export), testée avec des doubles
   app.js       composition : câble les trois couches
   template.html, styles.css
-scripts/       build.mjs, smoke.mjs, export-kit.mjs, make-fixture.mjs
+scripts/       build.mjs, smoke.mjs, export-kit.mjs, make-adg-template.mjs, make-fixture.mjs
 tests/         node:test, miroir de src/ ; fixtures/fixture.wav est le son de référence
 dist/          généré, non versionné : index.html autonome
 ```

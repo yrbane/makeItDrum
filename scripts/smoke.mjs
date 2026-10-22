@@ -90,6 +90,23 @@ try {
   });
   if (zipEntries[0] !== 'kit.json' || zipEntries.length !== 21 || zipEntries[20] !== '20_CHAOS.wav') failures.push('export : entrées inattendues ' + zipEntries.join(', '));
 
+  await page.click('#btnExportDaw');
+  await waitStatus(page, 'Exporté — ');
+  const dawEntries = await page.evaluate(async () => {
+    const bytes = new Uint8Array(await window.__lastBlob.arrayBuffer());
+    const view = new DataView(bytes.buffer);
+    const names = [];
+    let off = 0;
+    while (off + 30 <= bytes.length && view.getUint32(off, true) === 0x04034b50) {
+      const nameLen = view.getUint16(off + 26, true);
+      const size = view.getUint32(off + 18, true);
+      names.push(new TextDecoder().decode(bytes.subarray(off + 30, off + 30 + nameLen)));
+      off += 30 + nameLen + size;
+    }
+    return names;
+  });
+  if (!dawEntries[0].endsWith('.adg') || !dawEntries[1].endsWith('.sfz') || dawEntries.length !== 22 || dawEntries[21] !== 'Samples/20_CHAOS.wav') failures.push('export Ableton : entrées inattendues ' + dawEntries.join(', '));
+
   await page.reload();
   await page.waitForFunction(() => document.querySelectorAll('#kitSelect option').length > 1, { timeout: 20000 });
   const kitId = await page.$eval('#kitSelect option:nth-child(2)', (o) => o.value);
@@ -109,5 +126,5 @@ if (failures.length) {
   console.error('SMOKE KO\n - ' + failures.join('\n - '));
   process.exitCode = 1;
 } else {
-  console.log('SMOKE OK — erreur de décodage gérée, 20 pads actifs avec forme d\'onde, clavier, kit sauvé, exporté et rechargé, console propre');
+  console.log('SMOKE OK — erreur de décodage gérée, 20 pads actifs avec forme d\'onde, clavier, kit sauvé, exporté (.kit.zip et Ableton/SFZ) et rechargé, console propre');
 }

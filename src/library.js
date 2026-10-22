@@ -8,6 +8,8 @@ import { mulberry32, randomSeed } from './core/prng.js';
 import { buildZip, readZip } from './core/zip.js';
 import { packKit, unpackKit, BASE_NOTE } from './core/kit.js';
 import { defaultNotes, padForNote } from './core/midi/drummap.js';
+import { buildAdg } from './core/daw/adg.js';
+import { buildSfz } from './core/daw/sfz.js';
 import { MESSAGES } from './ui/messages.js';
 
 function stem(fileName) {
@@ -188,6 +190,38 @@ export function createLibrary({
     exportButton.disabled = false;
   }
 
+  // Drum Rack Ableton (.adg) + SFZ + WAV sous Samples/, dans <nom>.ableton.zip
+  async function exportDaw() {
+    if (!ready()) {
+      status.set(MESSAGES.waitForGeneration);
+      return;
+    }
+    exportButton.disabled = true;
+    status.set(MESSAGES.dawPreparing);
+    try {
+      const name = kitName();
+      const records = padsRecord();
+      const wavs = packKit({ name, engineVersion: version, createdAt: now(), source: sourceMeta, pads: records })
+        .filter(function (f) { return f.name !== 'kit.json'; });
+      const pads = records.map(function (p, i) {
+        return {
+          index: p.index, flavor: p.flavor, note: notes[i], seed: p.seed,
+          file: 'Samples/' + wavs[i].name, frames: p.samples.length, sampleRate: p.sampleRate, bytes: wavs[i].data.length,
+        };
+      });
+      const files = [
+        { name: name + '.adg', data: await buildAdg({ name, pads }) },
+        { name: name + '.sfz', data: new TextEncoder().encode(buildSfz({ name, pads })) },
+      ].concat(wavs.map(function (f) { return { name: 'Samples/' + f.name, data: f.data }; }));
+      download(new Blob([buildZip(files)], { type: 'application/zip' }), name + '.ableton.zip');
+      status.set(MESSAGES.dawExported(name));
+    } catch (err) {
+      console.error(err);
+      status.set(MESSAGES.dawError);
+    }
+    exportButton.disabled = false;
+  }
+
   async function saveKit() {
     if (!ready()) {
       status.set(MESSAGES.waitForGeneration);
@@ -270,5 +304,5 @@ export function createLibrary({
     refreshKits();
   }
 
-  return { load, generate, regenerateAll, play, trigger, noteOn, hover, click, exportKit, saveKit, loadKit, deleteKit, importKit, refreshKits, buffers, seeds, notes };
+  return { load, generate, regenerateAll, play, trigger, noteOn, hover, click, exportKit, exportDaw, saveKit, loadKit, deleteKit, importKit, refreshKits, buffers, seeds, notes };
 }

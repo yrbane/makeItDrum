@@ -1,19 +1,22 @@
 // Fabrique un kit en ligne de commande : charge dist/index.html dans Chromium headless,
 // injecte un fichier audio, attend les 20 rendus, exporte le .kit.zip.
 //   node scripts/export-kit.mjs <son.wav> [sortie.kit.zip]
+//   node scripts/export-kit.mjs <son.wav> [sortie.ableton.zip] --ableton   (Drum Rack .adg + .sfz + Samples/)
 import puppeteer from 'puppeteer-core';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const [input, output] = process.argv.slice(2);
+const args = process.argv.slice(2);
+const ableton = args.includes('--ableton');
+const [input, output] = args.filter((a) => a !== '--ableton');
 if (!input) {
   console.error('usage : node scripts/export-kit.mjs <son.wav> [sortie.kit.zip]');
   process.exit(2);
 }
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const CHROME = process.env.CHROME_PATH || '/usr/bin/chromium';
-const out = resolve(output || basename(input).replace(/\.[^.]+$/, '') + '.kit.zip');
+const out = resolve(output || basename(input).replace(/\.[^.]+$/, '') + (ableton ? '.ableton.zip' : '.kit.zip'));
 
 const browser = await puppeteer.launch({ executablePath: CHROME, headless: true, args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
 try {
@@ -34,7 +37,7 @@ try {
     el.dispatchEvent(new Event('change', { bubbles: true }));
   }, bytes.toString('base64'), basename(input));
   await page.waitForFunction(() => document.getElementById('statusText').textContent.startsWith('Bibliothèque prête'), { timeout: 180000 });
-  await page.click('#btnExportAll');
+  await page.click(ableton ? '#btnExportDaw' : '#btnExportAll');
   await page.waitForFunction(() => window.__lastBlob !== null, { timeout: 30000 });
   const zip = await page.evaluate(async () => Array.from(new Uint8Array(await window.__lastBlob.arrayBuffer())));
   writeFileSync(out, Buffer.from(zip));

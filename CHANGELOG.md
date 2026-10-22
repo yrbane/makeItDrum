@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0 — 2026-10-22 · « Export Ableton Drum Rack et SFZ »
+
+- **Bouton `ABLETON / SFZ`** : télécharge `<nom>.ableton.zip` = `<nom>.adg` (Drum Rack Ableton Live 12, une chaîne Simpler par pad sur les notes 36–55, vélocité, one-shot), `<nom>.sfz` (sforzando, Decent Sampler, Sitala, Bitwig, Renoise…) et les 20 WAV sous `Samples/`. À dézipper tel quel puis glisser le `.adg` dans Live.
+- Le `.adg` est construit sur un gabarit écrit par Live lui-même (preset de la Core Library vidé de ses échantillons et macros), pas sur un XML inventé : `scripts/make-adg-template.mjs` documente la fabrication. Chemins relatifs au fichier, longueurs et fréquence d'échantillonnage renseignées, graine du pad conservée.
+- **Développement** : modules purs `core/daw/adg`, `core/daw/sfz`, gabarit embarqué gzippé (≈10 Ko) ; smoke E2E : l'export Ableton produit 22 entrées. 103 tests.
+
 ## 1.3.0 — 2026-10-22 · « Jouable au clavier et en MIDI »
 
 - **MIDI in** : bouton `MIDI` (Web MIDI, autorisation demandée au clic), select de l'entrée (toutes ou une seule), branchement à chaud. Notes General MIDI 36–55 = pads 1–20, vélocité respectée ; un kit chargé apporte ses propres notes (`kit.json`). Chrome/Edge complets, Firefox via extension, Safari : clavier seulement.
