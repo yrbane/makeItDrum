@@ -23,6 +23,8 @@
 - [Philosophie : un fichier, zéro dépendance](#philosophie--un-fichier-zéro-dépendance)
 - [Compatibilité navigateurs](#compatibilité-navigateurs)
 - [Développement](#développement)
+  - [Structure du dépôt](#structure-du-dépôt)
+  - [Golden master](#golden-master)
 - [Conventions du projet](#conventions-du-projet)
 - [Crédits](#crédits)
 - [Licence](#licence)
@@ -39,7 +41,7 @@ Le tout dans une interface qui assume son côté rétro : fenêtre XP, barre de 
 
 ## Utilisation
 
-1. Ouvrir **[la démo](https://yrbane.github.io/makeItDrum/)** ou le fichier `index.html` dans un navigateur.
+1. Ouvrir **[la démo](https://yrbane.github.io/makeItDrum/)** ou le fichier `index.html` de la [dernière release](https://github.com/yrbane/makeItDrum/releases/latest) dans un navigateur.
 2. **Glisser-déposer** un fichier audio sur la zone prévue, ou cliquer pour parcourir (`.wav`, `.mp3`, `.ogg`, tout ce que le navigateur sait décoder).
 3. La bibliothèque de 20 percussions se génère en quelques secondes, avec la forme d'onde de chacune.
 4. **Survoler un pad** = écoute immédiate. **Cliquer** = nouvelle variation aléatoire de cette percussion, jouée aussitôt.
@@ -100,7 +102,9 @@ La lecture passe par un `AudioContext` live unique ; une source est coupée dès
 
 ## Philosophie : un fichier, zéro dépendance
 
-Tout le projet tient dans **`index.html`** : HTML, CSS et JavaScript, aucun script ni style distant, aucun framework, aucun bundler. Rien n'est envoyé sur le réseau : le son importé reste dans le navigateur. On peut télécharger le fichier, l'ouvrir en double-cliquant dessus, et il marche.
+Le livrable est **un seul `index.html`** : HTML, CSS et JavaScript inlinés, aucun script ni style distant, aucun framework à l'exécution. Rien n'est envoyé sur le réseau : le son importé reste dans le navigateur. On peut télécharger le fichier depuis la [dernière release](https://github.com/yrbane/makeItDrum/releases/latest), l'ouvrir en double-cliquant dessus, et il marche.
+
+Le code source, lui, est découpé en modules ES dans `src/` et assemblé par un build (esbuild, en dépendance de développement seulement).
 
 ## Compatibilité navigateurs
 
@@ -109,11 +113,42 @@ Tout navigateur moderne avec Web Audio : Chrome / Chromium, Firefox, Edge, Safar
 ## Développement
 
 ```bash
-npm test          # tests de cohérence (version, zéro dépendance, structure)
-npm run serve     # sert le dossier sur http://localhost:8765
+npm ci            # dépendances de développement uniquement (esbuild, puppeteer-core)
+npm test          # tests unitaires du cœur, de l'audio, de l'UI, de l'orchestration et du build
+npm run build     # produit dist/index.html (bundle esbuild inliné dans le gabarit)
+npm run golden    # golden master : original (tag v1.0.1) vs dist dans Chromium headless
+npm run test:e2e  # smoke E2E sur dist/index.html
+npm run serve     # sert dist/ sur http://localhost:8765
 ```
 
-La CI (GitHub Actions) lance les tests à chaque push et déploie `index.html` sur GitHub Pages depuis `main`.
+Les scripts navigateur utilisent `/usr/bin/chromium` par défaut ; `CHROME_PATH` permet d'en choisir un autre.
+
+La CI (GitHub Actions) enchaîne tests unitaires, build, golden master et smoke à chaque push, puis déploie `dist/index.html` sur GitHub Pages depuis `main`. Chaque release joint ce fichier.
+
+### Structure du dépôt
+
+```
+src/
+  core/        pur, sans DOM ni Web Audio : random, math, fft, analysis, curves,
+               bitcrush, normalize, impulse, samples, flavors (les 20 recettes), wav, zip
+  audio/       Web Audio : context (live), buffers, renderer (le moteur en briques),
+               postprocess, player
+  ui/          DOM : dom, pads, waveform, dropzone, parallax, download, messages
+  library.js   orchestration (import → rendu → lecture → export), testée avec des doubles
+  app.js       composition : câble les trois couches
+  template.html, styles.css
+scripts/       build.mjs, golden.mjs, smoke.mjs, make-fixture.mjs
+tests/         node:test, miroir de src/ ; fixtures/fixture.wav est le son de référence
+dist/          généré, non versionné : index.html autonome
+```
+
+### Golden master
+
+Le refactor est iso-fonctionnel par construction : `scripts/golden.mjs` charge l'original (relu dans git au tag `v1.0.1`) et `dist/index.html` dans le même Chromium, remplace `Math.random` par un générateur seedé, importe le même WAV, et compare :
+
+- la **trace du graphe Web Audio** (nœuds créés, paramètres, courbes, buffers, connexions, départs), qui doit être strictement identique ;
+- les 20 buffers rendus, à une tolérance près : Chromium somme les entrées multiples d'un nœud dans un ordre non déterministe ; la saturation amplifie ces écarts jusqu'à ~2e-3, et sur les pads bitcrushés un échantillon peut basculer d'un pas de quantification (jusqu'à 1,8e-2 mesuré). D'où deux seuils : écart max 0,1 (tolère un basculement isolé) et RMS relatif 1 % (le vrai discriminant, mesuré ≤ 0,17 % entre deux rendus de l'original). `GOLDEN_SELF=1` compare l'original à lui-même pour recalibrer ;
+- la structure du ZIP exporté, le DOM, le texte visible et le CSS, à l'identique.
 
 ## Conventions du projet
 

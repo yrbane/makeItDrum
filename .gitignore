@@ -10,3 +10,7 @@ dist/
 # OS / éditeurs
 .DS_Store
 *.swp
+
+# Dépendances et build
+node_modules/
+dist/

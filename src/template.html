@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>make it drum.exe</title>
+<style>
+<!-- build:css --></style>
+</head>
+<body>
+<div class="winstage">
+<div class="win">
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <span class="titlebar-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16"><ellipse cx="8" cy="11" rx="6" ry="3" fill="#123a9c" stroke="#dfeaff" stroke-width="0.6"/><ellipse cx="8" cy="9.2" rx="6" ry="3" fill="#3a6ce0" stroke="#dfeaff" stroke-width="0.6"/><ellipse cx="8" cy="5.2" rx="6" ry="3" fill="#8fb3ff" stroke="#123a9c" stroke-width="0.6"/></svg>
+      </span>
+      make it drum.exe — Windows XP Edition
+    </div>
+    <div class="titlebar-btns">
+      <div class="tbtn">_</div>
+      <div class="tbtn">□</div>
+      <div class="tbtn close">×</div>
+    </div>
+  </div>
+  <div class="menubar">
+    <span><u>F</u>ichier</span><span><u>É</u>dition</span><span><u>A</u>ffichage</span><span>?</span>
+  </div>
+
+  <div class="body">
+    <div class="logo-row">
+      <div>
+        <div class="logo">make it drum</div>
+        <div class="tagline">▸ ANY SOUND ▸ REAL DRUMKIT ▸ PROCEDURAL PERC ENGINE</div>
+        <div class="credit">un projet de <a href="https://beacons.ai/saiyageez" target="_blank" rel="noopener author" title="Masao — Saiya Geez">🥁 Masao « Saiya Geez » ↗</a></div>
+      </div>
+      <div class="badge" id="versionBadge">v{{VERSION}}</div>
+    </div>
+
+    <div class="dropzone" id="dropzone">
+      <span class="dz-icon">
+        <svg width="34" height="34" viewBox="0 0 34 34">
+          <path d="M2 9 L2 28 L32 28 L32 12 L16 12 L13 9 Z" fill="#ffd24a" stroke="#8a6d00" stroke-width="1"/>
+          <path d="M2 9 L2 6 L11 6 L14 9 Z" fill="#ffe28a" stroke="#8a6d00" stroke-width="1"/>
+        </svg>
+      </span>
+      <span class="dz-text">
+        <div class="dz-title">GLISSER-DÉPOSER UN FICHIER AUDIO ICI</div>
+        <div class="dz-sub">ou cliquer pour parcourir — wav / mp3 / ogg…</div>
+        <div class="dz-file" id="dzFile"></div>
+      </span>
+      <input type="file" id="fileInput" accept="audio/*" style="display:none">
+    </div>
+
+    <div class="section-label">bibliothèque du son importé — 20 percussions (survol = écoute, clic = variation)</div>
+    <div class="padgrid" id="padGrid"></div>
+
+    <div class="transport">
+      <button class="exportbtn" id="btnExportAll" disabled>
+        <svg class="icon" viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" rx="1" fill="#3a5a9a"/><rect x="3" y="2" width="7" height="5" fill="#dfe8ff"/><rect x="3" y="9" width="10" height="5" fill="#eee"/></svg>
+        TÉLÉCHARGER TOUT (.ZIP)
+      </button>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span id="statusText">Importer un son pour commencer…</span>
+    <span class="grip"></span>
+  </div>
+</div>
+</div>
+
+<script>
+<!-- build:js -->
+</script>
+</body>
+</html>
