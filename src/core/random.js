@@ -24,5 +24,5 @@ export function createRandom(random = Math.random) {
     return span > 0 ? random() * span : 0;
   }
 
-  return { rnd, jitter, chance, randomOffset };
+  return { random, rnd, jitter, chance, randomOffset };
 }
