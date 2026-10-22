@@ -66,3 +66,17 @@ test('setInput restreint à un port ; onstatechange rebranche et prévient', asy
   c.onmidimessage({ data: new Uint8Array([0x90, 37, 100]) });
   assert.deepEqual(notes, [36, 37]);
 });
+
+test('outputs liste les sorties, setOutput choisit le port (ou aucun)', async () => {
+  const outA = { id: 'oa', name: 'Synth A', send: () => {} };
+  const access = { inputs: new Map(), outputs: new Map([['oa', outA]]), onstatechange: null };
+  const midi = createMidiAccess({ requestMIDIAccess: () => Promise.resolve(access) });
+  assert.deepEqual(midi.outputs(), []);
+  await midi.init();
+  assert.deepEqual(midi.outputs(), [{ id: 'oa', name: 'Synth A' }]);
+  assert.equal(midi.output(), null, 'aucune sortie par défaut');
+  midi.setOutput('oa');
+  assert.equal(midi.output(), outA);
+  midi.setOutput('');
+  assert.equal(midi.output(), null);
+});

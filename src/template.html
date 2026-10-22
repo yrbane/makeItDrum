@@ -54,6 +54,23 @@
     <div class="section-label">bibliothèque du son importé — 20 percussions (survol = écoute, clic = variation, clavier Q…P / A…; ou MIDI 36–55)</div>
     <div class="padgrid" id="padGrid"></div>
 
+    <div class="section-label">séquenceur — 16 pas (clic = 100 → 127 → 60 → off)</div>
+    <div class="seq">
+      <div class="seqtransport">
+        <button class="xpbtn playbtn" id="btnPlay" type="button" disabled title="Lecture / arrêt du motif">▶ PLAY</button>
+        <label class="kitlabel" for="bpmInput">BPM</label>
+        <input class="xpinput" id="bpmInput" type="number" min="40" max="240" step="1" value="120">
+        <label class="kitlabel" for="swingInput">SWING</label>
+        <input class="xpinput" id="swingInput" type="range" min="0" max="100" step="1" value="0" title="Swing">
+        <span class="kitlabel" id="swingValue">0 %</span>
+        <label class="kitlabel" for="midiOutSelect">MIDI OUT</label>
+        <select class="kitselect midiselect" id="midiOutSelect" disabled title="Sortie MIDI (notes 36–55 + horloge) — activer MIDI d'abord"></select>
+        <label class="kitlabel chk"><input type="checkbox" id="chkClock"> HORLOGE</label>
+        <button class="xpbtn" id="btnClear" type="button" title="Effacer le motif">EFFACER</button>
+      </div>
+      <div class="stepgrid" id="stepGrid"></div>
+    </div>
+
     <div class="transport">
       <label class="kitlabel" for="kitSelect">KIT</label>
       <select class="kitselect" id="kitSelect" disabled title="Kits sauvegardés dans ce navigateur"></select>

@@ -45,9 +45,10 @@ Le tout dans une interface qui assume son côté rétro : fenêtre XP, barre de 
 3. La bibliothèque de 20 percussions se génère en quelques secondes, avec la forme d'onde de chacune.
 4. **Survoler un pad** = écoute immédiate. **Cliquer** = nouvelle variation aléatoire de cette percussion, jouée aussitôt.
 5. **Jouer** : clavier `Q…P` (pads 1–10) et `A…;` (pads 11–20), ou bouton **MIDI** puis notes 36–55 depuis un clavier, un pad ou Live (Chrome/Edge ; Firefox via extension ; Safari : clavier seulement).
-6. **SAUVER** garde le kit dans le navigateur ; le select **change de kit à la volée** ; **IMPORTER…** lit un `.kit.zip`.
-7. **ABLETON / SFZ** : `<nom>.ableton.zip` avec un **Drum Rack Live 12** (`.adg`, 20 chaînes Simpler sur les notes 36–55), un **`.sfz`** et les WAV sous `Samples/` — dézipper, glisser le `.adg` dans Live ou le `.sfz` dans n'importe quel sampler SFZ.
-8. **EXPORTER LE KIT (.KIT.ZIP)** : `kit.json` + les 20 sons `.wav` 16 bits, prêts pour le [plugin VST3 / CLAP](https://github.com/yrbane/makeItDrum-plugin), un sampler, un DAW ou une groovebox.
+6. **Séquenceur** : 20 lignes × 16 pas, clic = 100 → 127 → 60 → off, `▶ PLAY`, BPM, swing. Avec `MIDI` activé : `MIDI OUT` envoie les notes 36–55 et `HORLOGE` une horloge 24 ppqn (Live, groovebox, LXR-02 en esclave). Le motif est sauvegardé avec le kit.
+7. **SAUVER** garde le kit dans le navigateur ; le select **change de kit à la volée** ; **IMPORTER…** lit un `.kit.zip`.
+8. **ABLETON / SFZ** : `<nom>.ableton.zip` avec un **Drum Rack Live 12** (`.adg`, 20 chaînes Simpler sur les notes 36–55), un **`.sfz`** et les WAV sous `Samples/` — dézipper, glisser le `.adg` dans Live ou le `.sfz` dans n'importe quel sampler SFZ.
+9. **EXPORTER LE KIT (.KIT.ZIP)** : `kit.json` + les 20 sons `.wav` 16 bits, prêts pour le [plugin VST3 / CLAP](https://github.com/yrbane/makeItDrum-plugin), un sampler, un DAW ou une groovebox.
 
 Au survol et au clic, une seule percussion joue à la fois : la suivante coupe net la précédente, comme sur une vraie boîte à rythmes. Au clavier et en MIDI, les pads se superposent (chaque pad coupe seulement sa propre lecture précédente).
 

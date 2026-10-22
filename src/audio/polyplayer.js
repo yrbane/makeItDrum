@@ -12,7 +12,7 @@ export function createPolyPlayer(getContext) {
     if (v.onStop) v.onStop();
   }
 
-  function play(buffer, { voice = 0, gain = 1, onStart, onStop } = {}) {
+  function play(buffer, { voice = 0, gain = 1, when = 0, onStart, onStop } = {}) {
     stopVoice(voice);
     const ctx = getContext();
     const src = ctx.createBufferSource();
@@ -30,7 +30,7 @@ export function createPolyPlayer(getContext) {
         if (onStop) onStop();
       }
     };
-    src.start(0);
+    src.start(when);
   }
 
   function stopAll() {
