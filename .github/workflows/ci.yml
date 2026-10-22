@@ -17,12 +17,10 @@ concurrency:
 
 jobs:
   test:
-    name: Tests, build, golden master
+    name: Tests, build, smoke
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # le golden master relit l'original au tag v1.0.1
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -32,10 +30,6 @@ jobs:
         run: npm test
       - name: Build dist/index.html
         run: npm run build
-      - name: Golden master (original vs dist)
-        run: npm run golden
-        env:
-          CHROME_PATH: /usr/bin/google-chrome
       - name: Smoke E2E
         run: npm run test:e2e
         env:

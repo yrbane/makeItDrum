@@ -55,9 +55,15 @@
     <div class="padgrid" id="padGrid"></div>
 
     <div class="transport">
+      <label class="kitlabel" for="kitSelect">KIT</label>
+      <select class="kitselect" id="kitSelect" disabled title="Kits sauvegardés dans ce navigateur"></select>
+      <button class="xpbtn" id="btnSaveKit" type="button" title="Sauvegarder le kit affiché dans ce navigateur">SAUVER</button>
+      <button class="xpbtn" id="btnDeleteKit" type="button" disabled title="Supprimer le kit sélectionné">SUPPRIMER</button>
+      <button class="xpbtn" id="btnImportKit" type="button" title="Importer un .kit.zip ou un pack de WAV">IMPORTER…</button>
+      <input type="file" id="kitInput" accept=".zip,application/zip" style="display:none">
       <button class="exportbtn" id="btnExportAll" disabled>
         <svg class="icon" viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" rx="1" fill="#3a5a9a"/><rect x="3" y="2" width="7" height="5" fill="#dfe8ff"/><rect x="3" y="9" width="10" height="5" fill="#eee"/></svg>
-        TÉLÉCHARGER TOUT (.ZIP)
+        EXPORTER LE KIT (.KIT.ZIP)
       </button>
     </div>
   </div>

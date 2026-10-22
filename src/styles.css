@@ -248,7 +248,14 @@
     font-family:Tahoma,sans-serif; opacity:.6; pointer-events:none; text-shadow:0 0 3px rgba(0,0,0,.9);
   }
 
-  .transport{display:flex; align-items:center; gap:8px; margin-top:10px; transform:translateZ(11px);}
+  .transport{display:flex; align-items:center; gap:8px; margin-top:10px; transform:translateZ(11px); flex-wrap:wrap;}
+  .kitlabel{font-size:10px; letter-spacing:1px; color:#2a3b5c; font-weight:bold;}
+  .kitselect{font:11px Tahoma,Verdana,sans-serif; min-width:170px; max-width:230px; padding:2px 4px; border:1px solid #7f9db9; background:#fff; color:#111;}
+  .kitselect:disabled{color:#888; background:#f0f0f0;}
+  .xpbtn{font:bold 10px Tahoma,Verdana,sans-serif; letter-spacing:.5px; padding:4px 9px; border:1px solid #003c74; border-radius:3px; background:linear-gradient(#fff,#ecebe5 45%,#d8d6cf); color:#1b1b1b; cursor:pointer; box-shadow:0 1px 0 #fff inset;}
+  .xpbtn:hover{background:linear-gradient(#fff,#f3f1e8 45%,#e4e1d8); border-color:#1b56b3;}
+  .xpbtn:active{box-shadow:0 2px 3px rgba(0,0,0,.3) inset; transform:translateY(1px);}
+  .xpbtn:disabled{opacity:.45; cursor:not-allowed;}
   .exportbtn{
     flex:1; height:30px; border-radius:4px; font-size:11px; font-weight:bold; color:#1a2a4a;
     background:var(--face); border:1px solid #6d7a94; cursor:pointer;

@@ -198,9 +198,9 @@ function connectMaster(ctx, node, driveOut, rng) {
   node.connect(comp); comp.connect(out); out.connect(ctx.destination);
 }
 
-export function createRenderer({ rng, OfflineAudioContextCtor = globalThis.OfflineAudioContext }) {
-  // sample = { originalBuffer, reversedBuffer, analysis }
-  async function render(cfg, sample) {
+export function createRenderer({ OfflineAudioContextCtor = globalThis.OfflineAudioContext } = {}) {
+  // sample = { originalBuffer, reversedBuffer, analysis } ; rng = createRandom(...) propre au rendu
+  async function render(cfg, sample, rng) {
     const t = computeTimings(cfg, sample.originalBuffer.sampleRate, rng);
     const ctx = new OfflineAudioContextCtor(1, t.length, t.sr);
     const mix = ctx.createGain();

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 — 2026-10-22 · « Kits sauvegardés et graines »
+
+- **Kits** : nouvelle barre `KIT` sous les pads — `SAUVER` (nom demandé), select pour **changer de kit à la volée** (chargement instantané, sans rendu), `SUPPRIMER`, `IMPORTER…`. Les kits sont stockés dans le navigateur (IndexedDB) ; sans stockage disponible, l'export reste possible.
+- **Export `.kit.zip`** : remplace le pack `.zip` ; contient `kit.json` (schéma v1 : nom, recettes, graines, notes General MIDI 36–55, son source) et les 20 WAV nommés `01_BOOM.wav … 20_CHAOS.wav`. Lu tel quel par le plugin [make it drum — kit player](https://github.com/yrbane/makeItDrum-plugin). Le message « 10 fichiers » d'origine disparaît avec lui.
+- **Import** : `.kit.zip` ou ancien pack `makeitdrum_NN.wav` (ZIP store ou deflate), sauvegardé puis chargé.
+- **Graine par pad** : chaque rendu tire une graine 32 bits (`mulberry32`), mémorisée et exportée ; même son + même graine = même percussion.
+- **Développement** : golden master retiré (il comparait la refonte à l'original à tirages identiques ; la graine par pad change les tirages par conception). Les snapshots du renderer restent le contrat du moteur ; le smoke E2E couvre sauvegarde, export et rechargement d'un kit. 82 tests. Node ≥ 22.
+
 ## 1.1.0 — 2026-10-22 · « Refonte en modules »
 
 Aucun changement pour l'utilisateur : même son, même interface, même export. Tout est dans le code.

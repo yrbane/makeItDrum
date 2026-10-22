@@ -16,6 +16,7 @@ const result = await build({
   write: false,
   legalComments: 'inline',
   banner: { js: banner },
+  define: { __VERSION__: JSON.stringify(pkg.version) },
 });
 
 const js = result.outputFiles[0].text;

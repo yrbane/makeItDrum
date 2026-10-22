@@ -1,6 +1,8 @@
 // Smoke E2E sur dist/index.html dans Chromium headless :
 //  - un fichier illisible affiche le message d'erreur et laisse les pads désactivés ;
-//  - le WAV de référence active les 20 pads, sans erreur console (hors favicon).
+//  - le WAV de référence active les 20 pads, sans erreur console (hors favicon) ;
+//  - sauver un kit le liste dans le select, l'export produit un .kit.zip avec kit.json,
+//    un rechargement de la page retrouve le kit et le charge sans rendu.
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -37,6 +39,12 @@ try {
   const consoleErrors = [];
   page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
   page.on('pageerror', (e) => consoleErrors.push('pageerror: ' + e.message));
+  await page.evaluateOnNewDocument(() => {
+    window.__lastBlob = null;
+    const createObjectURL = URL.createObjectURL.bind(URL);
+    URL.createObjectURL = function (blob) { window.__lastBlob = blob; return createObjectURL(blob); };
+    window.prompt = () => 'Kit smoke';
+  });
   await page.goto('file://' + path('dist/index.html'));
 
   await inject(page, Buffer.from('ceci n\'est pas un son').toString('base64'), 'bad.txt', 'text/plain');
@@ -55,6 +63,36 @@ try {
   }));
   if (!drawn) failures.push('toutes les formes d\'onde devraient être dessinées');
 
+  // --- kits : sauver, exporter, recharger
+  await page.click('#btnSaveKit');
+  await waitStatus(page, 'Kit « Kit smoke » sauvegardé');
+  const options = await page.$$eval('#kitSelect option', (els) => els.map((o) => o.textContent));
+  if (!options.includes('Kit smoke')) failures.push('le kit sauvé devrait être listé dans le select : ' + options.join(', '));
+  await page.click('#btnExportAll');
+  await waitStatus(page, 'Kit exporté');
+  const zipEntries = await page.evaluate(async () => {
+    const bytes = new Uint8Array(await window.__lastBlob.arrayBuffer());
+    const view = new DataView(bytes.buffer);
+    const names = [];
+    let off = 0;
+    while (off + 30 <= bytes.length && view.getUint32(off, true) === 0x04034b50) {
+      const nameLen = view.getUint16(off + 26, true);
+      const size = view.getUint32(off + 18, true);
+      names.push(new TextDecoder().decode(bytes.subarray(off + 30, off + 30 + nameLen)));
+      off += 30 + nameLen + size;
+    }
+    return names;
+  });
+  if (zipEntries[0] !== 'kit.json' || zipEntries.length !== 21 || zipEntries[20] !== '20_CHAOS.wav') failures.push('export : entrées inattendues ' + zipEntries.join(', '));
+
+  await page.reload();
+  await page.waitForFunction(() => document.querySelectorAll('#kitSelect option').length > 1, { timeout: 20000 });
+  const kitId = await page.$eval('#kitSelect option:nth-child(2)', (o) => o.value);
+  await page.select('#kitSelect', kitId);
+  await waitStatus(page, 'Kit « Kit smoke » chargé');
+  const reloadedPads = await page.$$eval('.pad:not([disabled])', (els) => els.length);
+  if (reloadedPads !== 20) failures.push(`après rechargement du kit : ${reloadedPads} pads actifs au lieu de 20`);
+
   const realErrors = consoleErrors.filter((e) => !/favicon|decodeAudioData|EncodingError/.test(e));
   if (realErrors.length) failures.push('erreurs console : ' + realErrors.join(' | '));
   console.log(`statut final : « ${await status(page)} »`);
@@ -66,5 +104,5 @@ if (failures.length) {
   console.error('SMOKE KO\n - ' + failures.join('\n - '));
   process.exitCode = 1;
 } else {
-  console.log('SMOKE OK — erreur de décodage gérée, 20 pads actifs avec forme d\'onde, console propre');
+  console.log('SMOKE OK — erreur de décodage gérée, 20 pads actifs avec forme d\'onde, kit sauvé, exporté et rechargé, console propre');
 }
