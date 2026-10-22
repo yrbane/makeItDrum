@@ -8,7 +8,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { createRenderer } from '../../src/audio/renderer.js';
 import { createRandom } from '../../src/core/random.js';
 import { FLAVORS } from '../../src/core/flavors.js';
-import { mulberry32 } from '../helpers/random.mjs';
+import { mulberry32 } from '../../src/core/prng.js';
 import { createFakeOfflineContextCtor, fakeBuffer } from '../helpers/fake-audio.mjs';
 
 const SNAPSHOT_DIR = new URL('./snapshots/', import.meta.url);
@@ -31,11 +31,8 @@ function sample() {
 async function renderTrace(flavorName) {
   const cfg = FLAVORS.find((f) => f.name === flavorName);
   const trace = [];
-  const renderer = createRenderer({
-    rng: createRandom(mulberry32(42)),
-    OfflineAudioContextCtor: createFakeOfflineContextCtor(trace),
-  });
-  const buffer = await renderer.render(cfg, sample());
+  const renderer = createRenderer({ OfflineAudioContextCtor: createFakeOfflineContextCtor(trace) });
+  const buffer = await renderer.render(cfg, sample(), createRandom(mulberry32(42)));
   return { trace, buffer, cfg };
 }
 
