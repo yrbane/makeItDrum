@@ -5,9 +5,13 @@
 //     connexions, départs) doit être strictement identique : c'est la preuve
 //     que le refactor construit le même traitement avec les mêmes tirages ;
 //  2. les buffers rendus doivent coïncider à une tolérance près : Chromium
-//     somme les entrées multiples d'un nœud dans un ordre non déterministe, et
-//     la saturation amplifie ces écarts de l'ordre de 1e-7 jusqu'à ~2e-3
-//     (mesuré en comparant l'original avec lui-même : GOLDEN_SELF=1).
+//     somme les entrées multiples d'un nœud dans un ordre non déterministe ;
+//     la saturation amplifie ces écarts de l'ordre de 1e-7 jusqu'à ~2e-3, et
+//     sur les pads bitcrushés un échantillon peut basculer d'un pas de
+//     quantification (1/32 à 5 bits, × gain de normalisation ≈ 1,8e-2 mesuré
+//     sur le pad 20). Mesure : GOLDEN_SELF=1 compare l'original à lui-même.
+//     L'écart max tolère ce basculement isolé ; le RMS relatif (mesuré
+//     ≤ 1,7e-3, seuil 1e-2) est le vrai discriminant d'un changement de son.
 // Le ZIP exporté est comparé sur sa structure (entrées, tailles, en-têtes WAV),
 // le DOM, le texte visible et le CSS à l'identique.
 import puppeteer from 'puppeteer-core';
@@ -18,8 +22,8 @@ import { fileURLToPath } from 'node:url';
 const ROOT = new URL('../', import.meta.url);
 const CHROME = process.env.CHROME_PATH || '/usr/bin/chromium';
 const SEED = 123456;
-const MAX_ABS_DIFF = 0.05; // −26 dB : largement au-dessus du bruit de sommation, bien en dessous de l'audible
-const MAX_REL_RMS = 1e-2;
+const MAX_ABS_DIFF = 0.1; // un pas de quantification à 5 bits × gain de normalisation (≤ ~3), basculement isolé
+const MAX_REL_RMS = 1e-2; // énergie de l'écart ≤ 1 % de celle du signal (mesuré ≤ 1,7e-3 entre deux rendus de l'original)
 const REFERENCE_TAG = 'v1.0.1';
 
 function path(rel) { return fileURLToPath(new URL(rel, ROOT)); }

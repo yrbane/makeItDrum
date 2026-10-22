@@ -1,0 +1,96 @@
+ctx n1 1 33272 44100
+createGain n2
+createBufferSource n3
+prop n3.buffer buf[22050@44100:2f34a29d]
+set n3.playbackRate 2.1697340414393693
+createBiquadFilter n4
+prop n4.type highpass
+set n4.frequency 1486.3973351370078
+createWaveShaper n5
+prop n5.curve f32[1024:1813f511]
+prop n5.oversample 2x
+createGain n6
+setValueCurveAtTime n6.gain f32[512:e5635e19] 0 0.006197557576186955
+connect n3 -> n4
+connect n4 -> n5
+connect n5 -> n6
+connect n6 -> n2
+start n3 0 0
+createBufferSource n7
+prop n7.buffer buf[22050@44100:2f34a29d]
+set n7.playbackRate 0.3106998704578728
+createBiquadFilter n8
+prop n8.type lowpass
+set n8.frequency 244.97923705257475
+set n8.Q 0.594967968375422
+connect n7 -> n8
+createGain n9
+setValueCurveAtTime n9.gain f32[512:e1618a27] 0 0.5090858847724273
+connect n8 -> n9
+connect n9 -> n2
+start n7 0 0.2999000033875927
+createBufferSource n10
+prop n10.buffer buf[22050@44100:2f34a29d]
+set n10.playbackRate 0.17179540311917663
+createBiquadFilter n11
+prop n11.type bandpass
+set n11.frequency 113.47000257268547
+set n11.Q 0.900187533046119
+connect n10 -> n11
+createGain n12
+setValueCurveAtTime n12.gain f32[512:236c74e4] 0 0.38731772483508103
+connect n11 -> n12
+connect n12 -> n2
+start n10 0 0.20780273741343988
+createBufferSource n13
+prop n13.buffer buf[22050@44100:2f34a29d]
+set n13.playbackRate 0.1900770489675924
+createBiquadFilter n14
+prop n14.type lowpass
+set n14.frequency 45.32037879670038
+createWaveShaper n15
+prop n15.curve f32[1024:4abed013]
+prop n15.oversample 4x
+createGain n16
+setValueCurveAtTime n16.gain f32[512:72b47532] 0 0.557793148747366
+connect n13 -> n14
+connect n14 -> n15
+connect n15 -> n16
+connect n16 -> n2
+start n13 0 0.16006585407070814
+createWaveShaper n17
+prop n17.curve f32[1024:ef532a86]
+prop n17.oversample 4x
+connect n2 -> n17
+createWaveShaper n18
+prop n18.curve f32[1024:3f8c67ab]
+prop n18.oversample 4x
+connect n17 -> n18
+createBiquadFilter n19
+prop n19.type peaking
+set n19.frequency 77.76971971616149
+set n19.Q 0.9
+set n19.gain 4.875691093504429
+connect n18 -> n19
+createGain n20
+connect n19 -> n20
+createConvolver n21
+createBuffer n22 1 6411 44100
+prop n21.buffer buf[6411@44100:278cc3a7]
+createGain n23
+set n23.gain 0.15337080620229246
+connect n19 -> n21
+connect n21 -> n23
+connect n23 -> n20
+createDynamicsCompressor n24
+set n24.threshold -17
+set n24.knee 4
+set n24.ratio 10.708558407705278
+set n24.attack 0.0008
+set n24.release 0.10462399534927681
+createGain n25
+set n25.gain 1.2773500874778256
+connect n20 -> n24
+connect n24 -> n25
+connect n25 -> destination
+startRendering n1

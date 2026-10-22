@@ -147,7 +147,7 @@ dist/          généré, non versionné : index.html autonome
 Le refactor est iso-fonctionnel par construction : `scripts/golden.mjs` charge l'original (relu dans git au tag `v1.0.1`) et `dist/index.html` dans le même Chromium, remplace `Math.random` par un générateur seedé, importe le même WAV, et compare :
 
 - la **trace du graphe Web Audio** (nœuds créés, paramètres, courbes, buffers, connexions, départs), qui doit être strictement identique ;
-- les 20 buffers rendus, à une tolérance près : Chromium somme les entrées multiples d'un nœud dans un ordre non déterministe, et la saturation amplifie ces écarts jusqu'à ~2e-3 (mesurable avec `GOLDEN_SELF=1`, qui compare l'original à lui-même) ;
+- les 20 buffers rendus, à une tolérance près : Chromium somme les entrées multiples d'un nœud dans un ordre non déterministe ; la saturation amplifie ces écarts jusqu'à ~2e-3, et sur les pads bitcrushés un échantillon peut basculer d'un pas de quantification (jusqu'à 1,8e-2 mesuré). D'où deux seuils : écart max 0,1 (tolère un basculement isolé) et RMS relatif 1 % (le vrai discriminant, mesuré ≤ 0,17 % entre deux rendus de l'original). `GOLDEN_SELF=1` compare l'original à lui-même pour recalibrer ;
 - la structure du ZIP exporté, le DOM, le texte visible et le CSS, à l'identique.
 
 ## Conventions du projet

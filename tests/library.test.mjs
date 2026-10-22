@@ -11,9 +11,10 @@ function fakeEl() {
   return { disabled: true, classList: { add: (c) => classes.add(c), remove: (c) => classes.delete(c), has: (c) => classes.has(c) } };
 }
 
+// deux canaux distincts : le canal 0 vaut 0,5, le canal 1 vaut -0,25
 function fakeBuffer(n = 4) {
-  const data = new Float32Array(n).fill(0.5);
-  return { length: n, numberOfChannels: 1, sampleRate: 8000, duration: n / 8000, getChannelData: () => data };
+  const channels = [new Float32Array(n).fill(0.5), new Float32Array(n).fill(-0.25)];
+  return { length: n, numberOfChannels: 2, sampleRate: 8000, duration: n / 8000, getChannelData: (ch) => channels[ch] };
 }
 
 function setup(overrides = {}) {
@@ -81,6 +82,57 @@ test('exporter après génération télécharge makeitdrum_pack.zip', async () =
   await lib.exportZip();
   assert.deepEqual(downloads, ['makeitdrum_pack.zip']);
   assert.equal(statusLog.at(-1), MESSAGES.zipDone);
+});
+
+test('le WAV exporté est encodé depuis le canal 0', async () => {
+  const blobs = [];
+  const { lib } = setup({ download: (blob) => blobs.push(blob) });
+  await lib.load({ name: 'x.wav' });
+  await lib.exportZip();
+  const zip = new Uint8Array(await blobs[0].arrayBuffer());
+  const view = new DataView(zip.buffer);
+  const nameLen = view.getUint16(26, true);
+  const pcmStart = 30 + nameLen + 44;
+  // 0,5 × 0x7FFF = 16383,5 → tronqué par setInt16 ; le canal 1 (-0,25) donnerait une valeur négative
+  assert.equal(view.getInt16(pcmStart, true), Math.trunc(0.5 * 0x7fff));
+});
+
+test('un échec de rendu affiche le message, éteint le pad et le relâche', async () => {
+  let fail = false;
+  const { lib, statusLog, deps, renders } = setup({
+    renderer: { render: (cfg) => { renders.push(cfg.name); return fail ? Promise.reject(new Error('boom')) : Promise.resolve(fakeBuffer()); } },
+  });
+  await lib.load({ name: 'x.wav' });
+  fail = true;
+  const silent = console.error;
+  console.error = () => {};
+  try { await lib.generate(2, true); } finally { console.error = silent; }
+  assert.equal(statusLog.at(-1), MESSAGES.renderError);
+  assert.equal(deps.pads.els[2].classList.has('playing'), false);
+  fail = false;
+  renders.length = 0;
+  await lib.generate(2, false);
+  assert.equal(renders.length, 1, 'le pad doit être de nouveau générable');
+});
+
+test('generate avec autoplay allume le pad pendant la lecture et l\'éteint à la fin', async () => {
+  let listener = null;
+  const { lib, deps } = setup({ player: { play: (buf, l) => { listener = l; l.onStart(); }, stop: () => {} } });
+  await lib.load({ name: 'x.wav' });
+  await lib.generate(0, true);
+  assert.equal(deps.pads.els[0].classList.has('playing'), true);
+  listener.onStop();
+  assert.equal(deps.pads.els[0].classList.has('playing'), false);
+});
+
+test('hover joue le pad s\'il est prêt et reste muet sinon', async () => {
+  const played = [];
+  const { lib } = setup({ player: { play: (buf) => played.push(buf), stop: () => {} } });
+  lib.hover(0);
+  assert.equal(played.length, 0);
+  await lib.load({ name: 'x.wav' });
+  lib.hover(0);
+  assert.equal(played.length, 1);
 });
 
 test('click sans son importé demande d\'importer d\'abord', () => {
