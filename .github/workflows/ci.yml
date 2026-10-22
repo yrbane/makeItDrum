@@ -17,15 +17,33 @@ concurrency:
 
 jobs:
   test:
-    name: Tests
+    name: Tests, build, golden master
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # le golden master relit l'original au tag v1.0.1
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Tests de cohérence
+          cache: npm
+      - run: npm ci
+      - name: Tests unitaires
         run: npm test
+      - name: Build dist/index.html
+        run: npm run build
+      - name: Golden master (original vs dist)
+        run: npm run golden
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+      - name: Smoke E2E
+        run: npm run test:e2e
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+      - uses: actions/upload-artifact@v4
+        with:
+          name: index.html
+          path: dist/index.html
 
   deploy:
     name: Déploiement GitHub Pages
@@ -36,11 +54,10 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Préparation du site (index.html seul)
-        run: |
-          mkdir -p site
-          cp index.html site/
+      - uses: actions/download-artifact@v4
+        with:
+          name: index.html
+          path: site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

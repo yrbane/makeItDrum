@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.0 — 2026-10-22 · « Refonte en modules »
+
+Aucun changement pour l'utilisateur : même son, même interface, même export. Tout est dans le code.
+
+- **Architecture en trois couches** : `src/core/` pur (aléatoire injectable, FFT, analyse spectrale, courbes, bitcrush, normalisation, impulsion, les 20 recettes comme données nommées, encodeurs WAV et ZIP), `src/audio/` (contexte live, buffers, renderer découpé en briques, post-traitement, lecteur), `src/ui/` (DOM, pads, forme d'onde, dropzone, parallaxe, téléchargement, messages). `src/library.js` orchestre, `src/app.js` compose.
+- **Tests** : 50 tests `node:test` écrits avant chaque extraction (cœur, lecteur, UI, orchestration avec doubles, build). Code mort supprimé (`pick`, `makePitchCurve`).
+- **Build** : esbuild (devDependency) bundle les modules en IIFE et les inline avec le CSS dans `src/template.html` → `dist/index.html`, toujours un seul fichier sans ressource distante, badge de version injecté depuis `package.json`.
+- **Golden master** (`npm run golden`) : l'original (tag `v1.0.1`) et `dist` tournent dans le même Chromium headless avec un `Math.random` seedé ; la trace du graphe Web Audio (1 698 opérations) doit être identique, les 20 buffers équivalents à une tolérance calibrée sur le non-déterminisme de Chromium, le ZIP, le DOM et le CSS identiques.
+- **Smoke E2E** (`npm run test:e2e`) : fichier illisible → message d'erreur et pads désactivés ; WAV valide → 20 pads actifs avec forme d'onde, console propre.
+- **CI** : tests → build → golden → smoke → déploiement Pages depuis `dist/` ; `dist/index.html` joint à chaque release.
+
 ## 1.0.1 — 2026-10-22 · « Crédit à l'auteur »
 
 - **Crédit bien visible** sous le titre de l'application : lien vers la page de l'auteur, Masao « Saiya Geez » (https://beacons.ai/saiyageez), en bouton bleu XP cliquable.
