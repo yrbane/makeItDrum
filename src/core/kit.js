@@ -23,7 +23,7 @@ function stem(name) {
 }
 
 // pads : [{ index, flavor, seed, note? }] → objet du manifeste, sans audio
-export function buildManifest({ name, engineVersion, createdAt, source, pads }) {
+export function buildManifest({ name, engineVersion, createdAt, source, pads, pattern }) {
   return {
     schemaVersion: KIT_SCHEMA_VERSION,
     app: 'make-it-drum',
@@ -31,6 +31,7 @@ export function buildManifest({ name, engineVersion, createdAt, source, pads }) 
     name,
     createdAt: createdAt || null,
     source: source || null,
+    pattern: validPattern(pattern) ? pattern : null,
     pads: pads.map((p) => ({
       index: p.index,
       flavor: p.flavor,
@@ -39,6 +40,11 @@ export function buildManifest({ name, engineVersion, createdAt, source, pads }) 
       file: padFileName(p.index, p.flavor),
     })),
   };
+}
+
+// motif du séquenceur : { steps, bpm, swing, tracks: [[vélocités]] }
+function validPattern(p) {
+  return !!p && typeof p === 'object' && Number.isInteger(p.steps) && p.steps > 0 && Array.isArray(p.tracks);
 }
 
 export function parseManifest(text) {
@@ -58,6 +64,7 @@ export function parseManifest(text) {
     };
   });
   return {
+    pattern: validPattern(m.pattern) ? m.pattern : null,
     name: typeof m.name === 'string' ? m.name : null,
     engineVersion: typeof m.engineVersion === 'string' ? m.engineVersion : null,
     createdAt: typeof m.createdAt === 'string' ? m.createdAt : null,
@@ -89,7 +96,7 @@ export function unpackKit(entries, fallbackName = 'kit') {
       if (!e) throw new Error('fichier absent du kit : ' + p.file);
       return { ...p, wav: e.data };
     });
-    return { name: m.name || fallbackName, engineVersion: m.engineVersion, createdAt: m.createdAt, source: m.source, pads };
+    return { name: m.name || fallbackName, engineVersion: m.engineVersion, createdAt: m.createdAt, source: m.source, pattern: m.pattern || null, pads };
   }
   const legacy = entries
     .map((e) => ({ e, n: Number((LEGACY.exec(e.name) || [])[1]) }))

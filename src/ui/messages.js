@@ -31,5 +31,9 @@ export const MESSAGES = {
   midiReady: (n) => 'MIDI prêt — ' + n + ' entrée' + (n > 1 ? 's' : '') + ' ; notes 36 à 55 = pads 1 à 20.',
   midiNoInput: 'MIDI prêt — aucune entrée branchée pour l\'instant.',
   midiAllInputs: 'Toutes les entrées',
+  midiNoOutput: 'aucune',
+  seqPlaying: (bpm) => 'Motif en lecture à ' + bpm + ' BPM — clique les pas pour les activer.',
+  seqStopped: 'Motif arrêté.',
+  seqCleared: 'Motif effacé.',
   storageUnavailable: 'Sauvegarde indisponible dans ce navigateur — l\'export .kit.zip reste possible.',
 };

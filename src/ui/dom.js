@@ -16,6 +16,14 @@ export function queryElements(doc) {
     kitInput: doc.getElementById('kitInput'),
     btnMidi: doc.getElementById('btnMidi'),
     btnExportDaw: doc.getElementById('btnExportDaw'),
+    btnPlay: doc.getElementById('btnPlay'),
+    bpmInput: doc.getElementById('bpmInput'),
+    swingInput: doc.getElementById('swingInput'),
+    swingValue: doc.getElementById('swingValue'),
+    midiOutSelect: doc.getElementById('midiOutSelect'),
+    chkClock: doc.getElementById('chkClock'),
+    btnClear: doc.getElementById('btnClear'),
+    stepGrid: doc.getElementById('stepGrid'),
     midiSelect: doc.getElementById('midiSelect'),
   };
 }

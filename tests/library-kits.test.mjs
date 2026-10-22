@@ -239,3 +239,34 @@ test('exportDaw télécharge <nom>.ableton.zip : Drum Rack .adg, .sfz et les WAV
   assert.match(sfz, /sample=Samples\/20_CHAOS\.wav\nkey=55/);
   assert.equal(deps.exportButton.disabled, false);
 });
+
+test('trigger transmet `when` au lecteur polyphonique', async () => {
+  const played = [];
+  const { lib } = setup({ polyPlayer: { play: (buf, opts) => { played.push(opts); opts.onStart(); }, stopAll: () => {} } });
+  await lib.load({ name: 'x.wav' });
+  lib.trigger(1, 0.8, 42);
+  assert.equal(played[0].when, 42);
+});
+
+test('le motif est sauvegardé avec le kit, rechargé, exporté dans kit.json et importé', async () => {
+  const { lib, downloads, deps } = setup();
+  await lib.load({ name: 'x.wav' });
+  lib.setSequence({ pattern: { steps: 16, tracks: Array.from({ length: 20 }, (_, i) => Uint8Array.from(Array(16).fill(i === 2 ? 100 : 0))) }, bpm: 140, swing: 0.25 });
+  await lib.saveKit();
+  const saved = (await deps.storage.list())[0];
+  const rec = await deps.storage.get(saved.id);
+  assert.equal(rec.pattern.bpm, 140);
+  assert.equal(rec.pattern.tracks[2][0], 100);
+  lib.setSequence({ pattern: { steps: 16, tracks: Array.from({ length: 20 }, () => new Uint8Array(16)) }, bpm: 120, swing: 0 });
+  await lib.loadKit(saved.id);
+  assert.equal(lib.sequence().bpm, 140);
+  assert.equal(lib.sequence().pattern.tracks[2][0], 100);
+  await lib.exportKit();
+  const entries = await readZip(new Uint8Array(await downloads[0].blob.arrayBuffer()));
+  const manifest = JSON.parse(new TextDecoder().decode(entries[0].data));
+  assert.equal(manifest.pattern.bpm, 140);
+  lib.setSequence({ pattern: { steps: 16, tracks: Array.from({ length: 20 }, () => new Uint8Array(16)) }, bpm: 120, swing: 0 });
+  await lib.importKit({ name: 'x.kit.zip', bytes: new Uint8Array(await downloads[0].blob.arrayBuffer()) });
+  assert.equal(lib.sequence().bpm, 140);
+  assert.equal(lib.sequence().pattern.tracks[2][0], 100);
+});

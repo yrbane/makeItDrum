@@ -9,6 +9,7 @@ import { buildZip, readZip } from './core/zip.js';
 import { packKit, unpackKit, BASE_NOTE } from './core/kit.js';
 import { defaultNotes, padForNote } from './core/midi/drummap.js';
 import { buildAdg } from './core/daw/adg.js';
+import { createPattern, serializePattern, parsePattern } from './core/sequencer.js';
 import { buildSfz } from './core/daw/sfz.js';
 import { MESSAGES } from './ui/messages.js';
 
@@ -29,6 +30,7 @@ export function createLibrary({
   const buffers = new Array(padCount).fill(null);
   const seeds = new Array(padCount).fill(null);
   const notes = defaultNotes(padCount);
+  let seq = { pattern: createPattern(padCount), bpm: 120, swing: 0 }; // motif du séquenceur
   const busy = new Array(padCount).fill(false);
 
   function playingListener(padEl) {
@@ -117,10 +119,21 @@ export function createLibrary({
   }
 
   // déclenchement MIDI / clavier : polyphonique, avec vélocité
-  function trigger(idx, velocity) {
+  function trigger(idx, velocity, when) {
     if (!buffers[idx] || !polyPlayer) return;
     const listener = playingListener(pads.els[idx]);
-    polyPlayer.play(buffers[idx], { voice: idx, gain: velocity, onStart: listener.onStart, onStop: listener.onStop });
+    polyPlayer.play(buffers[idx], { voice: idx, gain: velocity, when: when || 0, onStart: listener.onStart, onStop: listener.onStop });
+  }
+
+  // --- séquenceur : motif + tempo, sauvegardés avec le kit
+  function sequence() { return seq; }
+  function setSequence(next) {
+    seq = { pattern: next.pattern || seq.pattern, bpm: next.bpm || seq.bpm, swing: Number.isFinite(next.swing) ? next.swing : seq.swing };
+  }
+  function patternJson() { return serializePattern(seq.pattern, { bpm: seq.bpm, swing: seq.swing }); }
+  function applyPattern(json) {
+    const parsed = parsePattern(json);
+    if (parsed) setSequence(parsed);
   }
 
   function noteOn(note, velocity) {
@@ -180,7 +193,7 @@ export function createLibrary({
     status.set(MESSAGES.zipPreparing);
     try {
       const name = kitName();
-      const files = packKit({ name, engineVersion: version, createdAt: now(), source: sourceMeta, pads: padsRecord() });
+      const files = packKit({ name, engineVersion: version, createdAt: now(), source: sourceMeta, pads: padsRecord(), pattern: patternJson() });
       download(new Blob([buildZip(files)], { type: 'application/zip' }), name + '.kit.zip');
       status.set(MESSAGES.kitExported(name));
     } catch (err) {
@@ -233,7 +246,7 @@ export function createLibrary({
     }
     const name = promptName(kitName());
     if (!name) return;
-    const kit = { id: newId(), name: name.trim() || kitName(), createdAt: now(), engineVersion: version, source: sourceMeta, pads: padsRecord() };
+    const kit = { id: newId(), name: name.trim() || kitName(), createdAt: now(), engineVersion: version, source: sourceMeta, pads: padsRecord(), pattern: patternJson() };
     await storage.put(kit);
     await setCurrentKit({ id: kit.id, name: kit.name });
     status.set(MESSAGES.kitSaved(kit.name));
@@ -262,6 +275,7 @@ export function createLibrary({
       return;
     }
     applyKit(kit);
+    applyPattern(kit.pattern);
     await setCurrentKit({ id: kit.id, name: kit.name });
     status.set(MESSAGES.kitLoaded(kit.name));
   }
@@ -286,7 +300,8 @@ export function createLibrary({
         const buf = await decode(p.wav.buffer.slice(p.wav.byteOffset, p.wav.byteOffset + p.wav.byteLength));
         padsOut.push({ index: p.index, flavor: p.flavor, seed: p.seed, note: p.note, sampleRate: buf.sampleRate, samples: Float32Array.from(buf.getChannelData(0)) });
       }
-      const kit = { id: newId(), name: unpacked.name, createdAt: now(), engineVersion: unpacked.engineVersion, source: unpacked.source, pads: padsOut };
+      const kit = { id: newId(), name: unpacked.name, createdAt: now(), engineVersion: unpacked.engineVersion, source: unpacked.source, pads: padsOut, pattern: unpacked.pattern || null };
+      applyPattern(kit.pattern);
       applyKit(kit);
       if (storage) {
         await storage.put(kit);
@@ -304,5 +319,5 @@ export function createLibrary({
     refreshKits();
   }
 
-  return { load, generate, regenerateAll, play, trigger, noteOn, hover, click, exportKit, exportDaw, saveKit, loadKit, deleteKit, importKit, refreshKits, buffers, seeds, notes };
+  return { load, generate, regenerateAll, play, trigger, noteOn, hover, click, sequence, setSequence, exportKit, exportDaw, saveKit, loadKit, deleteKit, importKit, refreshKits, buffers, seeds, notes };
 }

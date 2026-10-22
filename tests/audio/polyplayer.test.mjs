@@ -50,3 +50,16 @@ test('la fin naturelle d\'une voix appelle onStop une seule fois ; stopAll coupe
   p.stopAll();
   assert.equal(stops, 3);
 });
+
+test('play accepte un instant `when` pour démarrer la source plus tard', () => {
+  const starts = [];
+  const ctx = {
+    destination: 'dest',
+    createGain: () => ({ gain: { value: 1 }, connect: () => {} }),
+    createBufferSource: () => ({ connect: () => {}, start: (t) => starts.push(t), stop: () => {}, onended: null }),
+  };
+  const p = createPolyPlayer(() => ctx);
+  p.play('b', { voice: 0 });
+  p.play('b', { voice: 1, when: 12.5 });
+  assert.deepEqual(starts, [0, 12.5]);
+});

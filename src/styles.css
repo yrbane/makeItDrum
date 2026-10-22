@@ -257,6 +257,25 @@
   .xpbtn:active{box-shadow:0 2px 3px rgba(0,0,0,.3) inset; transform:translateY(1px);}
   .xpbtn:disabled{opacity:.45; cursor:not-allowed;}
   .midiselect{min-width:120px; max-width:180px;}
+  .seq{margin-top:4px; transform:translateZ(14px);}
+  .seqtransport{display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-bottom:6px;}
+  .playbtn{min-width:72px;}
+  .playbtn.on{background:linear-gradient(#ffe9e9,#f3a3a3 45%,#d86a6a); border-color:#8a1f1f;}
+  .xpinput{font:11px Tahoma,Verdana,sans-serif; border:1px solid #7f9db9; background:#fff; color:#111; padding:2px 3px;}
+  #bpmInput{width:52px;}
+  #swingInput{width:80px;}
+  .chk{display:inline-flex; align-items:center; gap:3px; cursor:pointer;}
+  .stepgrid{display:flex; flex-direction:column; gap:2px; padding:6px; background:#0c1620; border:2px inset #6a7a8a; border-radius:3px;}
+  .seqrow{display:flex; align-items:center; gap:2px;}
+  .seqlabel{width:62px; flex:none; font:bold 8px Tahoma,Verdana,sans-serif; letter-spacing:.5px; color:#8fd6a0; text-align:right; padding-right:4px; overflow:hidden; white-space:nowrap;}
+  .step{flex:1; height:11px; min-width:0; padding:0; border:1px solid #233; background:#17262f; cursor:pointer; border-radius:2px;}
+  .step.beat{border-color:#3d5a4a;}
+  .step:hover{border-color:#9fd;}
+  .step.on{background:#3fd66a; border-color:#2b8a46; box-shadow:0 0 4px #3fd66a;}
+  .step.on.v127{background:#b9ff8c; box-shadow:0 0 6px #b9ff8c;}
+  .step.on.v60{background:#1f8f45; box-shadow:none;}
+  .step.now{outline:1px solid #ffd24a; outline-offset:0;}
+  .step.now.on{filter:brightness(1.4);}
   .xpbtn.on{background:linear-gradient(#dff5df,#9fd99f 45%,#6cc26c); border-color:#2b7a2b;}
   .exportbtn{
     flex:1; height:30px; border-radius:4px; font-size:11px; font-weight:bold; color:#1a2a4a;

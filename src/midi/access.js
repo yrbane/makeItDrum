@@ -6,6 +6,7 @@ import { parseMidiMessage } from '../core/midi/drummap.js';
 export function createMidiAccess(navigatorRef) {
   let access = null;
   let wanted = 'all';
+  let wantedOutput = '';
   let noteHandler = null;
   let portsHandler = null;
 
@@ -45,6 +46,15 @@ export function createMidiAccess(navigatorRef) {
       return Array.from(access.inputs.values()).map(function (i) { return { id: i.id, name: i.name || i.id }; });
     },
     setInput: function (id) { wanted = id || 'all'; },
+    outputs: function () {
+      if (!access || !access.outputs) return [];
+      return Array.from(access.outputs.values()).map(function (o) { return { id: o.id, name: o.name || o.id }; });
+    },
+    setOutput: function (id) { wantedOutput = id || ''; },
+    output: function () {
+      if (!access || !access.outputs || !wantedOutput) return null;
+      return access.outputs.get(wantedOutput) || null;
+    },
     onNote: function (handler) { noteHandler = handler; },
     onPortsChanged: function (handler) { portsHandler = handler; },
   };

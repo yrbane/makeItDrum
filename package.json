@@ -1,6 +1,6 @@
 {
   "name": "make-it-drum",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "private": true,
   "description": "N'importe quel son devient un kit de 20 percussions — moteur procédural Web Audio, sans dépendance, dans une fenêtre Windows XP.",
   "type": "module",

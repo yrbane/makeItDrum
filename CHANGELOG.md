@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.0 — 2026-10-22 · « Boîte à rythmes : séquenceur, sortie MIDI et horloge »
+
+- **Séquenceur pas-à-pas** sous les pads : 20 lignes (une par recette) × 16 pas, clic = 100 → 127 → 60 → off (trois vélocités), `▶ PLAY` / `■ STOP`, BPM 40–240, swing 0–100 %, `EFFACER`. Tête de lecture sur la grille. Planification à anticipation sur l'horloge Web Audio (timer 25 ms, fenêtre 100 ms) : pas de gigue.
+- **Le motif voyage avec le kit** : sauvegardé dans le navigateur, écrit dans `kit.json` (`pattern`, champ optionnel ignoré par le plugin) et relu à l'import.
+- **Sortie MIDI + horloge** : après `MIDI`, select `MIDI OUT` (notes 36–55, canal 10, vélocité, horodatage calé sur l'audio) et case `HORLOGE` (24 ppqn, Start/Stop) pour piloter Live, une groovebox ou un LXR-02 en esclave.
+- **Développement** : modules purs `core/sequencer` (motif immuable, `eventsBetween`), `audio/scheduler`, `midi/out`, `ui/stepgrid` ; `polyPlayer.play(…, { when })` ; smoke E2E : un pas activé, lecture avec tête de lecture, arrêt. 120 tests.
+
 ## 1.4.0 — 2026-10-22 · « Export Ableton Drum Rack et SFZ »
 
 - **Bouton `ABLETON / SFZ`** : télécharge `<nom>.ableton.zip` = `<nom>.adg` (Drum Rack Ableton Live 12, une chaîne Simpler par pad sur les notes 36–55, vélocité, one-shot), `<nom>.sfz` (sforzando, Decent Sampler, Sitala, Bitwig, Renoise…) et les 20 WAV sous `Samples/`. À dézipper tel quel puis glisser le `.adg` dans Live.

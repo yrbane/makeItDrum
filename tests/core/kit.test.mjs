@@ -74,3 +74,14 @@ test('unpackKit signale un manifeste qui pointe vers un fichier absent et un ZIP
   assert.throws(() => unpackKit([{ name: 'kit.json', data: manifest }]), /nope\.wav/);
   assert.throws(() => unpackKit([{ name: 'readme.txt', data: new Uint8Array(1) }]), /aucun/i);
 });
+
+test('le motif du séquenceur voyage dans kit.json (optionnel, ignoré s\'il est invalide)', () => {
+  const pattern = { steps: 16, bpm: 128, swing: 0.1, tracks: Array.from({ length: 20 }, () => Array(16).fill(0)) };
+  pattern.tracks[0][0] = 100;
+  const m = buildManifest({ name: 'x', pads: pads(), pattern });
+  assert.deepEqual(m.pattern, pattern);
+  assert.equal(buildManifest({ name: 'x', pads: pads() }).pattern, null);
+  const parsed = parseManifest(JSON.stringify(m));
+  assert.deepEqual(parsed.pattern, pattern);
+  assert.equal(parseManifest(JSON.stringify({ ...m, pattern: 'nope' })).pattern, null);
+});

@@ -68,6 +68,18 @@ try {
   const litByKey = await page.$eval('.pad:nth-child(2)', (el) => el.classList.contains('playing'));
   if (!litByKey) failures.push('la touche W devrait allumer le pad 2');
 
+  // --- séquenceur : activer un pas, lire, tête de lecture, arrêter
+  await page.click('.seqrow:nth-child(1) .step:nth-child(2)');
+  const stepOn = await page.$eval('.seqrow:nth-child(1) .step:nth-child(2)', (el) => el.classList.contains('on'));
+  if (!stepOn) failures.push('le clic sur un pas devrait l\'activer');
+  await page.click('#btnPlay');
+  await page.waitForFunction(() => document.querySelectorAll('.step.now').length === 20, { timeout: 5000 }).catch(() => failures.push('la tête de lecture devrait apparaître sur les 20 lignes'));
+  await waitStatus(page, 'Motif en lecture');
+  await page.click('#btnPlay');
+  await waitStatus(page, 'Motif arrêté');
+  const nowLeft = await page.$$eval('.step.now', (els) => els.length);
+  if (nowLeft !== 0) failures.push('la tête de lecture devrait disparaître à l\'arrêt');
+
   // --- kits : sauver, exporter, recharger
   await page.click('#btnSaveKit');
   await waitStatus(page, 'Kit « Kit smoke » sauvegardé');
@@ -126,5 +138,5 @@ if (failures.length) {
   console.error('SMOKE KO\n - ' + failures.join('\n - '));
   process.exitCode = 1;
 } else {
-  console.log('SMOKE OK — erreur de décodage gérée, 20 pads actifs avec forme d\'onde, clavier, kit sauvé, exporté (.kit.zip et Ableton/SFZ) et rechargé, console propre');
+  console.log('SMOKE OK — erreur de décodage gérée, 20 pads actifs avec forme d\'onde, clavier, séquenceur joué et arrêté, kit sauvé, exporté (.kit.zip et Ableton/SFZ) et rechargé, console propre');
 }
