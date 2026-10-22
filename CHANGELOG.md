@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0 — 2026-10-22 · « Jouable au clavier et en MIDI »
+
+- **MIDI in** : bouton `MIDI` (Web MIDI, autorisation demandée au clic), select de l'entrée (toutes ou une seule), branchement à chaud. Notes General MIDI 36–55 = pads 1–20, vélocité respectée ; un kit chargé apporte ses propres notes (`kit.json`). Chrome/Edge complets, Firefox via extension, Safari : clavier seulement.
+- **Clavier de l'ordinateur** : `Q…P` = pads 1–10, `A…;` = pads 11–20 (par position physique, AZERTY ou QWERTY).
+- **Lecture polyphonique** pour le MIDI et le clavier : les pads se superposent, rejouer un pad coupe sa lecture précédente. Le survol et le clic gardent la lecture mono d'origine.
+- **Développement** : modules purs `core/midi/drummap`, `midi/access` (port du patron WebGlitch, testé avec un faux navigateur), `audio/polyplayer`, `ui/keyboard` ; smoke E2E : la touche W allume le pad 2. 96 tests.
+
 ## 1.2.0 — 2026-10-22 · « Kits sauvegardés et graines »
 
 - **Kits** : nouvelle barre `KIT` sous les pads — `SAUVER` (nom demandé), select pour **changer de kit à la volée** (chargement instantané, sans rendu), `SUPPRIMER`, `IMPORTER…`. Les kits sont stockés dans le navigateur (IndexedDB) ; sans stockage disponible, l'export reste possible.

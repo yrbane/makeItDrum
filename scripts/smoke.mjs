@@ -63,6 +63,11 @@ try {
   }));
   if (!drawn) failures.push('toutes les formes d\'onde devraient être dessinées');
 
+  // --- clavier : la touche W (2e pad) déclenche la lecture polyphonique
+  await page.keyboard.press('KeyW');
+  const litByKey = await page.$eval('.pad:nth-child(2)', (el) => el.classList.contains('playing'));
+  if (!litByKey) failures.push('la touche W devrait allumer le pad 2');
+
   // --- kits : sauver, exporter, recharger
   await page.click('#btnSaveKit');
   await waitStatus(page, 'Kit « Kit smoke » sauvegardé');
@@ -104,5 +109,5 @@ if (failures.length) {
   console.error('SMOKE KO\n - ' + failures.join('\n - '));
   process.exitCode = 1;
 } else {
-  console.log('SMOKE OK — erreur de décodage gérée, 20 pads actifs avec forme d\'onde, kit sauvé, exporté et rechargé, console propre');
+  console.log('SMOKE OK — erreur de décodage gérée, 20 pads actifs avec forme d\'onde, clavier, kit sauvé, exporté et rechargé, console propre');
 }

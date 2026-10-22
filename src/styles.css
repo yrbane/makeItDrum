@@ -256,6 +256,8 @@
   .xpbtn:hover{background:linear-gradient(#fff,#f3f1e8 45%,#e4e1d8); border-color:#1b56b3;}
   .xpbtn:active{box-shadow:0 2px 3px rgba(0,0,0,.3) inset; transform:translateY(1px);}
   .xpbtn:disabled{opacity:.45; cursor:not-allowed;}
+  .midiselect{min-width:120px; max-width:180px;}
+  .xpbtn.on{background:linear-gradient(#dff5df,#9fd99f 45%,#6cc26c); border-color:#2b7a2b;}
   .exportbtn{
     flex:1; height:30px; border-radius:4px; font-size:11px; font-weight:bold; color:#1a2a4a;
     background:var(--face); border:1px solid #6d7a94; cursor:pointer;

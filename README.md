@@ -44,10 +44,11 @@ Le tout dans une interface qui assume son côté rétro : fenêtre XP, barre de 
 2. **Glisser-déposer** un fichier audio sur la zone prévue, ou cliquer pour parcourir (`.wav`, `.mp3`, `.ogg`, tout ce que le navigateur sait décoder).
 3. La bibliothèque de 20 percussions se génère en quelques secondes, avec la forme d'onde de chacune.
 4. **Survoler un pad** = écoute immédiate. **Cliquer** = nouvelle variation aléatoire de cette percussion, jouée aussitôt.
-5. **SAUVER** garde le kit dans le navigateur ; le select **change de kit à la volée** ; **IMPORTER…** lit un `.kit.zip`.
-6. **EXPORTER LE KIT (.KIT.ZIP)** : `kit.json` + les 20 sons `.wav` 16 bits, prêts pour le [plugin VST3 / CLAP](https://github.com/yrbane/makeItDrum-plugin), un sampler, un DAW ou une groovebox.
+5. **Jouer** : clavier `Q…P` (pads 1–10) et `A…;` (pads 11–20), ou bouton **MIDI** puis notes 36–55 depuis un clavier, un pad ou Live (Chrome/Edge ; Firefox via extension ; Safari : clavier seulement).
+6. **SAUVER** garde le kit dans le navigateur ; le select **change de kit à la volée** ; **IMPORTER…** lit un `.kit.zip`.
+7. **EXPORTER LE KIT (.KIT.ZIP)** : `kit.json` + les 20 sons `.wav` 16 bits, prêts pour le [plugin VST3 / CLAP](https://github.com/yrbane/makeItDrum-plugin), un sampler, un DAW ou une groovebox.
 
-Une seule percussion joue à la fois : la suivante coupe net la précédente, comme sur une vraie boîte à rythmes.
+Au survol et au clic, une seule percussion joue à la fois : la suivante coupe net la précédente, comme sur une vraie boîte à rythmes. Au clavier et en MIDI, les pads se superposent (chaque pad coupe seulement sa propre lecture précédente).
 
 ## Les 20 percussions
 
