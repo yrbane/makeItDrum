@@ -48,7 +48,8 @@ Le tout dans une interface qui assume son côté rétro : fenêtre XP, barre de 
 6. **Séquenceur** : 20 lignes × 16 pas, clic = 100 → 127 → 60 → off, `▶ PLAY`, BPM, swing. Avec `MIDI` activé : `MIDI OUT` envoie les notes 36–55 et `HORLOGE` une horloge 24 ppqn (Live, groovebox, LXR-02 en esclave). Le motif est sauvegardé avec le kit.
 7. **SAUVER** garde le kit dans le navigateur ; le select **change de kit à la volée** ; **IMPORTER…** lit un `.kit.zip`.
 8. **ABLETON / SFZ** : `<nom>.ableton.zip` avec un **Drum Rack Live 12** (`.adg`, 20 chaînes Simpler sur les notes 36–55), un **`.sfz`** et les WAV sous `Samples/` — dézipper, glisser le `.adg` dans Live ou le `.sfz` dans n'importe quel sampler SFZ.
-9. **EXPORTER LE KIT (.KIT.ZIP)** : `kit.json` + les 20 sons `.wav` 16 bits, prêts pour le [plugin VST3 / CLAP](https://github.com/yrbane/makeItDrum-plugin), un sampler, un DAW ou une groovebox.
+9. **▶ ENVOYER DANS LIVE** (si le compagnon tourne, voir ci-dessous) : le Drum Rack arrive sur la piste sélectionnée de Live.
+10. **EXPORTER LE KIT (.KIT.ZIP)** : `kit.json` + les 20 sons `.wav` 16 bits, prêts pour le [plugin VST3 / CLAP](https://github.com/yrbane/makeItDrum-plugin), un sampler, un DAW ou une groovebox.
 
 Au survol et au clic, une seule percussion joue à la fois : la suivante coupe net la précédente, comme sur une vraie boîte à rythmes. Au clavier et en MIDI, les pads se superposent (chaque pad coupe seulement sa propre lecture précédente).
 
@@ -109,6 +110,15 @@ notes General MIDI 36–55, son source) et les 20 WAV `01_BOOM.wav … 20_CHAOS.
 mono, lisibles par le plugin [make it drum — kit player](https://github.com/yrbane/makeItDrum-plugin)
 (VST3 / CLAP) ou tout sampler.
 
+## Envoyer dans Live sans glisser-déposer
+
+Deux petites pièces, hors du mono-fichier, zéro dépendance :
+
+1. **Le compagnon** `makeitdrum-bridge` (Node ≥ 22) — `dist/makeitdrum-bridge.mjs` est joint à chaque [release](https://github.com/yrbane/makeItDrum/releases/latest) ; depuis le dépôt : `npm run bridge`. Il écoute `127.0.0.1:47800`, détecte la User Library de Live (`~/Music/Ableton`, `~/Documents/Ableton`, ou un préfixe Wine), sinon `--user-library "<chemin>"`.
+2. **Le Remote Script** `MakeItDrum` — `tools/remote-script/install.sh` le copie dans `User Library/Remote Scripts/MakeItDrum` ; dans Live : *Préférences › Link, Tempo & MIDI › Surface de contrôle → MakeItDrum* (ports : aucun), puis relancer Live.
+
+Ensuite, dans la page, le bouton **▶ ENVOYER DANS LIVE** apparaît : le kit est écrit dans `User Library/Presets/Instruments/Drum Rack/make it drum/<kit>/` et chargé sur la piste sélectionnée (Live rescanne sa User Library en quelques secondes ; le script réessaie pendant 20 s). Sans Remote Script, le preset reste disponible dans le navigateur de Live. Le compagnon n'accepte que la page locale, la démo `yrbane.github.io` et `localhost`.
+
 ## Philosophie : un fichier, zéro dépendance
 
 Le livrable est **un seul `index.html`** : HTML, CSS et JavaScript inlinés, aucun script ni style distant, aucun framework à l'exécution. Rien n'est envoyé sur le réseau : le son importé reste dans le navigateur. On peut télécharger le fichier depuis la [dernière release](https://github.com/yrbane/makeItDrum/releases/latest), l'ouvrir en double-cliquant dessus, et il marche.
@@ -146,7 +156,8 @@ src/
   library.js   orchestration (import → rendu → lecture → export), testée avec des doubles
   app.js       composition : câble les trois couches
   template.html, styles.css
-scripts/       build.mjs, smoke.mjs, export-kit.mjs, make-adg-template.mjs, make-fixture.mjs
+scripts/       build.mjs, build-bridge.mjs, smoke.mjs, export-kit.mjs, make-adg-template.mjs, make-fixture.mjs
+tools/         bridge/ (compagnon Node), remote-script/ (Remote Script Live + install.sh + tests Python)
 tests/         node:test, miroir de src/ ; fixtures/fixture.wav est le son de référence
 dist/          généré, non versionné : index.html autonome
 ```

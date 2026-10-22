@@ -20,7 +20,7 @@ function stem(fileName) {
 export function createLibrary({
   padCount, pads, status, fileLabel, exportButton,
   renderer, player, warmUpAudio, readFile, decode, prepareSample, draw, download,
-  storage = null, kitBar = null, promptName = () => null, createBuffer = null, polyPlayer = null,
+  storage = null, kitBar = null, promptName = () => null, createBuffer = null, polyPlayer = null, bridge = null,
   version = '', now = () => new Date().toISOString(), random = Math.random,
   newId = () => (globalThis.crypto && crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
 }) {
@@ -203,7 +203,25 @@ export function createLibrary({
     exportButton.disabled = false;
   }
 
-  // Drum Rack Ableton (.adg) + SFZ + WAV sous Samples/, dans <nom>.ableton.zip
+  // Drum Rack Ableton (.adg) + SFZ + WAV sous Samples/ → { name, bytes } du zip
+  async function buildDawZip() {
+    const name = kitName();
+    const records = padsRecord();
+    const wavs = packKit({ name, engineVersion: version, createdAt: now(), source: sourceMeta, pads: records })
+      .filter(function (f) { return f.name !== 'kit.json'; });
+    const pads = records.map(function (p, i) {
+      return {
+        index: p.index, flavor: p.flavor, note: notes[i], seed: p.seed,
+        file: 'Samples/' + wavs[i].name, frames: p.samples.length, sampleRate: p.sampleRate, bytes: wavs[i].data.length,
+      };
+    });
+    const files = [
+      { name: name + '.adg', data: await buildAdg({ name, pads }) },
+      { name: name + '.sfz', data: new TextEncoder().encode(buildSfz({ name, pads })) },
+    ].concat(wavs.map(function (f) { return { name: 'Samples/' + f.name, data: f.data }; }));
+    return { name, bytes: buildZip(files) };
+  }
+
   async function exportDaw() {
     if (!ready()) {
       status.set(MESSAGES.waitForGeneration);
@@ -212,25 +230,32 @@ export function createLibrary({
     exportButton.disabled = true;
     status.set(MESSAGES.dawPreparing);
     try {
-      const name = kitName();
-      const records = padsRecord();
-      const wavs = packKit({ name, engineVersion: version, createdAt: now(), source: sourceMeta, pads: records })
-        .filter(function (f) { return f.name !== 'kit.json'; });
-      const pads = records.map(function (p, i) {
-        return {
-          index: p.index, flavor: p.flavor, note: notes[i], seed: p.seed,
-          file: 'Samples/' + wavs[i].name, frames: p.samples.length, sampleRate: p.sampleRate, bytes: wavs[i].data.length,
-        };
-      });
-      const files = [
-        { name: name + '.adg', data: await buildAdg({ name, pads }) },
-        { name: name + '.sfz', data: new TextEncoder().encode(buildSfz({ name, pads })) },
-      ].concat(wavs.map(function (f) { return { name: 'Samples/' + f.name, data: f.data }; }));
-      download(new Blob([buildZip(files)], { type: 'application/zip' }), name + '.ableton.zip');
-      status.set(MESSAGES.dawExported(name));
+      const zip = await buildDawZip();
+      download(new Blob([zip.bytes], { type: 'application/zip' }), zip.name + '.ableton.zip');
+      status.set(MESSAGES.dawExported(zip.name));
     } catch (err) {
       console.error(err);
       status.set(MESSAGES.dawError);
+    }
+    exportButton.disabled = false;
+  }
+
+  // même zip, envoyé au compagnon local qui l'écrit dans la User Library de Live
+  async function sendToLive() {
+    if (!ready()) {
+      status.set(MESSAGES.waitForGeneration);
+      return;
+    }
+    if (!bridge) return;
+    exportButton.disabled = true;
+    status.set(MESSAGES.liveSending);
+    try {
+      const zip = await buildDawZip();
+      const res = await bridge.sendKit(zip.name, zip.bytes);
+      status.set(MESSAGES.liveSent(zip.name, !!res.notified));
+    } catch (err) {
+      console.error(err);
+      status.set(MESSAGES.liveError(err && err.message ? err.message : String(err)));
     }
     exportButton.disabled = false;
   }
@@ -319,5 +344,5 @@ export function createLibrary({
     refreshKits();
   }
 
-  return { load, generate, regenerateAll, play, trigger, noteOn, hover, click, sequence, setSequence, exportKit, exportDaw, saveKit, loadKit, deleteKit, importKit, refreshKits, buffers, seeds, notes };
+  return { load, generate, regenerateAll, play, trigger, noteOn, hover, click, sequence, setSequence, exportKit, exportDaw, sendToLive, saveKit, loadKit, deleteKit, importKit, refreshKits, buffers, seeds, notes };
 }

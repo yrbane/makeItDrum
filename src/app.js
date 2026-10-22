@@ -12,6 +12,7 @@ import { createScheduler } from './audio/scheduler.js';
 import { createMidiOut } from './midi/out.js';
 import { createPattern, toggleStep } from './core/sequencer.js';
 import { flavorAt } from './core/flavors.js';
+import { createBridgeClient } from './bridge/client.js';
 import { queryElements } from './ui/dom.js';
 import { createPadGrid } from './ui/pads.js';
 import { drawWaveform } from './ui/waveform.js';
@@ -41,6 +42,7 @@ function start(doc, win) {
   initParallax(el.win, win, doc);
 
   const liveCtx = createLiveContext(win);
+  const bridge = createBridgeClient(function (url, opts) { return win.fetch(url, opts); });
   const pads = createPadGrid(el.padGrid, doc, PAD_COUNT);
 
   const library = createLibrary({
@@ -51,7 +53,7 @@ function start(doc, win) {
     // les deux boutons d'export suivent le même état
     exportButton: {
       get disabled() { return el.btnExportAll.disabled; },
-      set disabled(v) { el.btnExportAll.disabled = v; el.btnExportDaw.disabled = v; el.btnPlay.disabled = v; },
+      set disabled(v) { el.btnExportAll.disabled = v; el.btnExportDaw.disabled = v; el.btnPlay.disabled = v; el.btnSendLive.disabled = v; },
     },
     renderer: createRenderer(),
     player: createPlayer(function () { return liveCtx.get(); }),
@@ -69,6 +71,7 @@ function start(doc, win) {
     draw: drawWaveform,
     download: function (blob, name) { downloadBlob(doc, blob, name); },
     storage: createKitStore(win.indexedDB),
+    bridge: bridge,
     kitBar: createKitBar(el, doc),
     promptName: function (defaultName) { return win.prompt(MESSAGES.kitNamePrompt, defaultName); },
     createBuffer: function (samples, sampleRate) {
@@ -86,6 +89,14 @@ function start(doc, win) {
   });
   el.btnExportAll.addEventListener('click', function () { library.exportKit(); });
   el.btnExportDaw.addEventListener('click', function () { library.exportDaw(); });
+  el.btnSendLive.addEventListener('click', function () { library.sendToLive(); });
+  // compagnon local « makeitdrum-bridge » : s'il répond, le bouton « ENVOYER DANS LIVE » apparaît
+  bridge.health().then(function (info) {
+    if (!info) return;
+    el.btnSendLive.hidden = false;
+    el.btnSendLive.title += ' — v' + info.version + ' · ' + info.userLibrary;
+    if (el.statusText.textContent === MESSAGES.importFirst || /^Importer un son/.test(el.statusText.textContent)) el.statusText.textContent = MESSAGES.liveFound;
+  });
   el.btnSaveKit.addEventListener('click', function () { library.saveKit(); });
   el.btnDeleteKit.addEventListener('click', function () { library.deleteKit(); });
   el.kitSelect.addEventListener('change', function () { liveCtx.get(); library.loadKit(el.kitSelect.value); });

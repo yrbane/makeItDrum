@@ -1,6 +1,6 @@
 {
   "name": "make-it-drum",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "private": true,
   "description": "N'importe quel son devient un kit de 20 percussions — moteur procédural Web Audio, sans dépendance, dans une fenêtre Windows XP.",
   "type": "module",
@@ -21,7 +21,10 @@
     "test": "node --test \"tests/**/*.test.mjs\"",
     "build": "node scripts/build.mjs",
     "test:e2e": "node scripts/smoke.mjs",
-    "serve": "python3 -m http.server 8765 -d dist"
+    "serve": "python3 -m http.server 8765 -d dist",
+    "build:bridge": "node scripts/build-bridge.mjs",
+    "test:remote-script": "python3 -m unittest discover -s tools/remote-script/tests",
+    "bridge": "node tools/bridge/makeitdrum-bridge.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

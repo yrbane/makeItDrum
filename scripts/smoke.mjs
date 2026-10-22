@@ -4,6 +4,10 @@
 //  - sauver un kit le liste dans le select, l'export produit un .kit.zip avec kit.json,
 //    un rechargement de la page retrouve le kit et le charge sans rendu.
 import puppeteer from 'puppeteer-core';
+import { mkdtempSync, existsSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createBridgeServer } from '../tools/bridge/server.mjs';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
@@ -39,6 +43,10 @@ try {
   const consoleErrors = [];
   page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
   page.on('pageerror', (e) => consoleErrors.push('pageerror: ' + e.message));
+  // compagnon local réel sur le port attendu par la page, User Library temporaire
+  const userLibrary = mkdtempSync(join(tmpdir(), 'mid-smoke-ul-'));
+  const bridge = createBridgeServer({ userLibrary, port: 47800, notifyPort: 47899, version: 'smoke' });
+  await bridge.listen();
   await page.evaluateOnNewDocument(() => {
     window.__lastBlob = null;
     const createObjectURL = URL.createObjectURL.bind(URL);
@@ -102,6 +110,14 @@ try {
   });
   if (zipEntries[0] !== 'kit.json' || zipEntries.length !== 21 || zipEntries[20] !== '20_CHAOS.wav') failures.push('export : entrées inattendues ' + zipEntries.join(', '));
 
+  // --- compagnon Live : bouton visible, envoi, fichiers écrits
+  const liveVisible = await page.$eval('#btnSendLive', (el) => !el.hidden && !el.disabled);
+  if (!liveVisible) failures.push('le bouton « ENVOYER DANS LIVE » devrait être visible avec le compagnon actif');
+  await page.click('#btnSendLive');
+  await waitStatus(page, 'Envoyé dans Live');
+  const adgPath = join(userLibrary, 'Presets', 'Instruments', 'Drum Rack', 'make it drum', 'Kit smoke', 'Kit smoke.adg');
+  if (!existsSync(adgPath)) failures.push('le compagnon devrait avoir écrit ' + adgPath);
+
   await page.click('#btnExportDaw');
   await waitStatus(page, 'Exporté — ');
   const dawEntries = await page.evaluate(async () => {
@@ -127,6 +143,9 @@ try {
   const reloadedPads = await page.$$eval('.pad:not([disabled])', (els) => els.length);
   if (reloadedPads !== 20) failures.push(`après rechargement du kit : ${reloadedPads} pads actifs au lieu de 20`);
 
+  await bridge.close();
+  rmSync(userLibrary, { recursive: true, force: true });
+
   const realErrors = consoleErrors.filter((e) => !/favicon|decodeAudioData|EncodingError/.test(e));
   if (realErrors.length) failures.push('erreurs console : ' + realErrors.join(' | '));
   console.log(`statut final : « ${await status(page)} »`);
@@ -138,5 +157,5 @@ if (failures.length) {
   console.error('SMOKE KO\n - ' + failures.join('\n - '));
   process.exitCode = 1;
 } else {
-  console.log('SMOKE OK — erreur de décodage gérée, 20 pads actifs avec forme d\'onde, clavier, séquenceur joué et arrêté, kit sauvé, exporté (.kit.zip et Ableton/SFZ) et rechargé, console propre');
+  console.log('SMOKE OK — erreur de décodage gérée, 20 pads actifs avec forme d\'onde, clavier, séquenceur joué et arrêté, kit sauvé, envoyé au compagnon Live, exporté (.kit.zip et Ableton/SFZ) et rechargé, console propre');
 }
