@@ -12,7 +12,8 @@ await build({
   format: 'esm',
   target: 'node22',
   outfile: new URL('dist/makeitdrum-bridge.mjs', ROOT).pathname,
-  banner: { js: `#!/usr/bin/env node\n// makeitdrum-bridge v${pkg.version} — make it drum (Masao « Saiya Geez ») — https://github.com/yrbane/makeItDrum` },
+  // le shebang du fichier d'entrée est conservé par esbuild en tête de sortie
+  banner: { js: `// makeitdrum-bridge v${pkg.version} — make it drum (Masao « Saiya Geez ») — https://github.com/yrbane/makeItDrum` },
   define: { __BRIDGE_VERSION__: JSON.stringify(pkg.version) },
 });
 console.log(`dist/makeitdrum-bridge.mjs — v${pkg.version}`);

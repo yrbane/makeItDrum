@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.1 — 2026-10-22 · « Compagnon exécutable »
+
+- Correctif : le bundle `dist/makeitdrum-bridge.mjs` ne démarrait pas (deux lignes shebang, esbuild conservant celle du fichier d'entrée sous la bannière). Vérifié au lancement.
+
 ## 1.6.0 — 2026-10-22 · « Envoyer dans Live »
 
 - **Bouton `▶ ENVOYER DANS LIVE`** : apparaît quand le compagnon local tourne ; un clic écrit le Drum Rack (`.adg` + `.sfz` + `Samples/`) dans `User Library/Presets/Instruments/Drum Rack/make it drum/<kit>/` et le Remote Script le charge sur la piste sélectionnée de Live. Sans compagnon, rien ne change.
