@@ -16,6 +16,7 @@ export function queryElements(doc) {
     kitInput: doc.getElementById('kitInput'),
     btnMidi: doc.getElementById('btnMidi'),
     btnExportDaw: doc.getElementById('btnExportDaw'),
+    btnSendLive: doc.getElementById('btnSendLive'),
     btnPlay: doc.getElementById('btnPlay'),
     bpmInput: doc.getElementById('bpmInput'),
     swingInput: doc.getElementById('swingInput'),

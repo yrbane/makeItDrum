@@ -270,3 +270,22 @@ test('le motif est sauvegardé avec le kit, rechargé, exporté dans kit.json et
   assert.equal(lib.sequence().bpm, 140);
   assert.equal(lib.sequence().pattern.tracks[2][0], 100);
 });
+
+test('sendToLive envoie le même zip que l\'export Ableton au compagnon et affiche le résultat', async () => {
+  const sent = [];
+  const bridge = { sendKit: async (name, bytes) => { sent.push({ name, bytes }); return { ok: true, path: '/ul/k.adg', notified: true }; } };
+  const { lib, statusLog } = setup({ bridge });
+  await lib.sendToLive();
+  assert.equal(sent.length, 0, 'rien sans bibliothèque');
+  await lib.load({ name: 'casserole.wav' });
+  await lib.sendToLive();
+  assert.equal(sent[0].name, 'casserole');
+  const entries = await readZip(sent[0].bytes);
+  assert.equal(entries[0].name, 'casserole.adg');
+  assert.equal(entries.length, 22);
+  assert.equal(statusLog.at(-1), MESSAGES.liveSent('casserole', true));
+  const failing = setup({ bridge: { sendKit: async () => { throw new Error('refusé'); } } });
+  await failing.lib.load({ name: 'x.wav' });
+  await failing.lib.sendToLive();
+  assert.equal(failing.statusLog.at(-1), MESSAGES.liveError('refusé'));
+});

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.0 — 2026-10-22 · « Envoyer dans Live »
+
+- **Bouton `▶ ENVOYER DANS LIVE`** : apparaît quand le compagnon local tourne ; un clic écrit le Drum Rack (`.adg` + `.sfz` + `Samples/`) dans `User Library/Presets/Instruments/Drum Rack/make it drum/<kit>/` et le Remote Script le charge sur la piste sélectionnée de Live. Sans compagnon, rien ne change.
+- **Compagnon `makeitdrum-bridge`** (`tools/bridge/`, Node ≥ 22, zéro dépendance, bundlé en `dist/makeitdrum-bridge.mjs` joint à la release) : `127.0.0.1:47800`, `GET /health`, `POST /kit`, origines limitées à la page locale, à la démo et à localhost, entrées de zip nettoyées, détection de la User Library (native ou Wine), notification UDP du Remote Script.
+- **Remote Script `MakeItDrum`** (`tools/remote-script/`, Python de Live 11/12, `install.sh`) : socket UDP non bloquante relevée dans `update_display`, recherche du preset dans `browser.user_library`, `browser.load_item`, nouvel essai pendant 20 s le temps que Live rescanne, messages dans la barre d'état de Live.
+- **Développement** : `src/bridge/client.js`, `library.sendToLive` (zip factorisé avec l'export Ableton), tests Node du serveur (HTTP + UDP + fichiers) et tests Python des parties pures ; le smoke E2E lance un vrai compagnon et vérifie le `.adg` écrit. 126 tests Node + 6 Python.
+
 ## 1.5.0 — 2026-10-22 · « Boîte à rythmes : séquenceur, sortie MIDI et horloge »
 
 - **Séquenceur pas-à-pas** sous les pads : 20 lignes (une par recette) × 16 pas, clic = 100 → 127 → 60 → off (trois vélocités), `▶ PLAY` / `■ STOP`, BPM 40–240, swing 0–100 %, `EFFACER`. Tête de lecture sur la grille. Planification à anticipation sur l'horloge Web Audio (timer 25 ms, fenêtre 100 ms) : pas de gigue.

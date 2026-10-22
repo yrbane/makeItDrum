@@ -260,6 +260,8 @@
   .seq{margin-top:4px; transform:translateZ(14px);}
   .seqtransport{display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-bottom:6px;}
   .playbtn{min-width:72px;}
+  .livebtn{background:linear-gradient(#fff3d6,#ffd98a 45%,#f0b94a); border-color:#8a5a00;}
+  .livebtn:hover{background:linear-gradient(#fff8e8,#ffe3a6 45%,#f5c65f);}
   .playbtn.on{background:linear-gradient(#ffe9e9,#f3a3a3 45%,#d86a6a); border-color:#8a1f1f;}
   .xpinput{font:11px Tahoma,Verdana,sans-serif; border:1px solid #7f9db9; background:#fff; color:#111; padding:2px 3px;}
   #bpmInput{width:52px;}
