@@ -14,7 +14,7 @@ test('les messages de statut sont ceux de l\'original', () => {
   assert.equal(MESSAGES.variationInProgress, 'Variation en cours…');
   assert.equal(MESSAGES.padReady(4), 'Pad 5 — survole pour écouter, reclique pour une variation');
   assert.equal(MESSAGES.waitForGeneration, 'Attends la fin de la génération avant de télécharger.');
-  assert.equal(MESSAGES.zipPreparing, 'Préparation du pack .zip…');
-  assert.equal(MESSAGES.zipDone, 'Pack téléchargé — 10 fichiers .wav dans un .zip.');
-  assert.equal(MESSAGES.zipError, 'Échec de la création du pack .zip, réessaie.');
+  assert.equal(MESSAGES.zipPreparing, 'Préparation du kit (.kit.zip)…');
+  assert.equal(MESSAGES.kitExported('x'), 'Kit exporté — 20 .wav + kit.json dans « x.kit.zip ».');
+  assert.equal(MESSAGES.zipError, 'Échec de la création du kit, réessaie.');
 });

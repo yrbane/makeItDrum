@@ -9,5 +9,10 @@ export function queryElements(doc) {
     statusText: doc.getElementById('statusText'),
     btnExportAll: doc.getElementById('btnExportAll'),
     padGrid: doc.getElementById('padGrid'),
+    kitSelect: doc.getElementById('kitSelect'),
+    btnSaveKit: doc.getElementById('btnSaveKit'),
+    btnDeleteKit: doc.getElementById('btnDeleteKit'),
+    btnImportKit: doc.getElementById('btnImportKit'),
+    kitInput: doc.getElementById('kitInput'),
   };
 }

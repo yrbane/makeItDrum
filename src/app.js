@@ -1,5 +1,4 @@
 // Composition : câble le cœur DSP, la couche Web Audio et l'interface.
-import { createRandom } from './core/random.js';
 import { analyzeSamples } from './core/analysis.js';
 import { createLiveContext } from './audio/context.js';
 import { makeReversedBuffer } from './audio/buffers.js';
@@ -11,9 +10,14 @@ import { drawWaveform } from './ui/waveform.js';
 import { bindDropzone } from './ui/dropzone.js';
 import { initParallax } from './ui/parallax.js';
 import { downloadBlob } from './ui/download.js';
+import { createKitBar } from './ui/kitbar.js';
+import { createKitStore } from './storage/kits.js';
+import { MESSAGES } from './ui/messages.js';
 import { createLibrary } from './library.js';
 
 const PAD_COUNT = 20;
+// injecté par scripts/build.mjs (define) ; valeur de repli pour un import direct
+const BUILD_VERSION = typeof __VERSION__ !== 'undefined' ? __VERSION__ : 'dev';
 
 function readAsArrayBuffer(file) {
   return new Promise(function (resolve, reject) {
@@ -28,7 +32,6 @@ function start(doc, win) {
   const el = queryElements(doc);
   initParallax(el.win, win, doc);
 
-  const rng = createRandom();
   const liveCtx = createLiveContext(win);
   const pads = createPadGrid(el.padGrid, doc, PAD_COUNT);
 
@@ -38,7 +41,7 @@ function start(doc, win) {
     status: { set: function (t) { el.statusText.textContent = t; } },
     fileLabel: { set: function (t) { el.dzFile.textContent = t; } },
     exportButton: el.btnExportAll,
-    renderer: createRenderer({ rng }),
+    renderer: createRenderer(),
     player: createPlayer(function () { return liveCtx.get(); }),
     warmUpAudio: function () { liveCtx.get(); },
     readFile: readAsArrayBuffer,
@@ -52,6 +55,15 @@ function start(doc, win) {
     },
     draw: drawWaveform,
     download: function (blob, name) { downloadBlob(doc, blob, name); },
+    storage: createKitStore(win.indexedDB),
+    kitBar: createKitBar(el, doc),
+    promptName: function (defaultName) { return win.prompt(MESSAGES.kitNamePrompt, defaultName); },
+    createBuffer: function (samples, sampleRate) {
+      const buf = liveCtx.get().createBuffer(1, samples.length, sampleRate);
+      buf.copyToChannel(samples, 0);
+      return buf;
+    },
+    version: BUILD_VERSION,
   });
 
   bindDropzone(el, function (file) { library.load(file); });
@@ -59,7 +71,15 @@ function start(doc, win) {
     btn.addEventListener('mouseenter', function () { library.hover(idx); });
     btn.addEventListener('click', function () { library.click(idx); });
   });
-  el.btnExportAll.addEventListener('click', function () { library.exportZip(); });
+  el.btnExportAll.addEventListener('click', function () { library.exportKit(); });
+  el.btnSaveKit.addEventListener('click', function () { library.saveKit(); });
+  el.btnDeleteKit.addEventListener('click', function () { library.deleteKit(); });
+  el.kitSelect.addEventListener('change', function () { liveCtx.get(); library.loadKit(el.kitSelect.value); });
+  el.btnImportKit.addEventListener('click', function () { el.kitInput.value = ''; el.kitInput.click(); });
+  el.kitInput.addEventListener('change', function () {
+    liveCtx.get();
+    if (el.kitInput.files && el.kitInput.files[0]) library.importKit(el.kitInput.files[0]);
+  });
 }
 
 start(document, window);

@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createLibrary } from '../src/library.js';
 import { MESSAGES } from '../src/ui/messages.js';
+import { readZip } from '../src/core/zip.js';
 
 const PAD_COUNT = 20;
 
@@ -71,30 +72,29 @@ test('un clic sur un pad déjà en cours de rendu est ignoré', async () => {
 
 test('exporter avant la fin de la génération est refusé sans téléchargement', async () => {
   const { lib, statusLog, downloads } = setup();
-  await lib.exportZip();
+  await lib.exportKit();
   assert.equal(statusLog.at(-1), MESSAGES.waitForGeneration);
   assert.equal(downloads.length, 0);
 });
 
-test('exporter après génération télécharge makeitdrum_pack.zip', async () => {
+test('exporter après génération télécharge x.kit.zip', async () => {
   const { lib, statusLog, downloads } = setup();
   await lib.load({ name: 'x.wav' });
-  await lib.exportZip();
-  assert.deepEqual(downloads, ['makeitdrum_pack.zip']);
-  assert.equal(statusLog.at(-1), MESSAGES.zipDone);
+  await lib.exportKit();
+  assert.deepEqual(downloads, ['x.kit.zip']);
+  assert.equal(statusLog.at(-1), MESSAGES.kitExported('x'));
 });
 
 test('le WAV exporté est encodé depuis le canal 0', async () => {
   const blobs = [];
   const { lib } = setup({ download: (blob) => blobs.push(blob) });
   await lib.load({ name: 'x.wav' });
-  await lib.exportZip();
-  const zip = new Uint8Array(await blobs[0].arrayBuffer());
-  const view = new DataView(zip.buffer);
-  const nameLen = view.getUint16(26, true);
-  const pcmStart = 30 + nameLen + 44;
+  await lib.exportKit();
+  const entries = await readZip(new Uint8Array(await blobs[0].arrayBuffer()));
+  const first = entries.find((e) => e.name === '01_BOOM.wav');
+  const view = new DataView(first.data.buffer, first.data.byteOffset, first.data.byteLength);
   // 0,5 × 0x7FFF = 16383,5 → tronqué par setInt16 ; le canal 1 (-0,25) donnerait une valeur négative
-  assert.equal(view.getInt16(pcmStart, true), Math.trunc(0.5 * 0x7fff));
+  assert.equal(view.getInt16(44, true), Math.trunc(0.5 * 0x7fff));
 });
 
 test('un échec de rendu affiche le message, éteint le pad et le relâche', async () => {

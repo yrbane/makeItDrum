@@ -1,7 +1,7 @@
 // Renderer : le graphe construit pour une recette, avec un aléatoire seedé,
 // est figé par snapshot (tests de caractérisation). Les snapshots ont été
-// établis quand le golden master prouvait l'équivalence avec l'original ;
-// UPDATE_SNAPSHOTS=1 les régénère, à n'utiliser qu'après un golden vert.
+// établis quand le golden master (1.1.0) prouvait l'équivalence avec l'original ;
+// UPDATE_SNAPSHOTS=1 les régénère : seulement pour un changement de moteur voulu.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';

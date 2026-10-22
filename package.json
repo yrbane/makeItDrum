@@ -1,11 +1,11 @@
 {
   "name": "make-it-drum",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "description": "N'importe quel son devient un kit de 20 percussions — moteur procédural Web Audio, sans dépendance, dans une fenêtre Windows XP.",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "author": "Masao « Saiya Geez » (https://beacons.ai/saiyageez)",
   "contributors": [
@@ -20,7 +20,6 @@
   "scripts": {
     "test": "node --test \"tests/**/*.test.mjs\"",
     "build": "node scripts/build.mjs",
-    "golden": "node scripts/golden.mjs",
     "test:e2e": "node scripts/smoke.mjs",
     "serve": "python3 -m http.server 8765 -d dist"
   },

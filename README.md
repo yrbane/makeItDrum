@@ -24,7 +24,6 @@
 - [Compatibilité navigateurs](#compatibilité-navigateurs)
 - [Développement](#développement)
   - [Structure du dépôt](#structure-du-dépôt)
-  - [Golden master](#golden-master)
 - [Conventions du projet](#conventions-du-projet)
 - [Crédits](#crédits)
 - [Licence](#licence)
@@ -45,7 +44,8 @@ Le tout dans une interface qui assume son côté rétro : fenêtre XP, barre de 
 2. **Glisser-déposer** un fichier audio sur la zone prévue, ou cliquer pour parcourir (`.wav`, `.mp3`, `.ogg`, tout ce que le navigateur sait décoder).
 3. La bibliothèque de 20 percussions se génère en quelques secondes, avec la forme d'onde de chacune.
 4. **Survoler un pad** = écoute immédiate. **Cliquer** = nouvelle variation aléatoire de cette percussion, jouée aussitôt.
-5. **TÉLÉCHARGER TOUT (.ZIP)** : les 20 sons au format `.wav` 16 bits, prêts pour un sampler, un DAW ou un groovebox.
+5. **SAUVER** garde le kit dans le navigateur ; le select **change de kit à la volée** ; **IMPORTER…** lit un `.kit.zip`.
+6. **EXPORTER LE KIT (.KIT.ZIP)** : `kit.json` + les 20 sons `.wav` 16 bits, prêts pour le [plugin VST3 / CLAP](https://github.com/yrbane/makeItDrum-plugin), un sampler, un DAW ou une groovebox.
 
 Une seule percussion joue à la fois : la suivante coupe net la précédente, comme sur une vraie boîte à rythmes.
 
@@ -98,7 +98,13 @@ L'aléatoire (`jitter`, `pick`, `chance`) est injecté dans chaque paramètre à
 
 ### Lecture et export
 
-La lecture passe par un `AudioContext` live unique ; une source est coupée dès qu'une autre démarre. L'export encode chaque buffer en **WAV PCM 16 bits** et assemble les 20 fichiers dans un **ZIP en mode « store »** (sans compression, avec CRC-32) — encodeur et archiveur sont écrits dans le fichier, sans bibliothèque.
+Survoler un pad le joue ; cliquer régénère sa percussion avec une nouvelle graine. La barre
+`KIT` sauvegarde le kit affiché dans le navigateur (IndexedDB), le select change de kit à la
+volée sans rendu, `IMPORTER…` lit un `.kit.zip` ou un ancien pack de WAV, et
+`EXPORTER LE KIT` télécharge `<nom>.kit.zip` : `kit.json` (schéma v1 : recettes, graines,
+notes General MIDI 36–55, son source) et les 20 WAV `01_BOOM.wav … 20_CHAOS.wav`, 16 bits
+mono, lisibles par le plugin [make it drum — kit player](https://github.com/yrbane/makeItDrum-plugin)
+(VST3 / CLAP) ou tout sampler.
 
 ## Philosophie : un fichier, zéro dépendance
 
@@ -116,14 +122,14 @@ Tout navigateur moderne avec Web Audio : Chrome / Chromium, Firefox, Edge, Safar
 npm ci            # dépendances de développement uniquement (esbuild, puppeteer-core)
 npm test          # tests unitaires du cœur, de l'audio, de l'UI, de l'orchestration et du build
 npm run build     # produit dist/index.html (bundle esbuild inliné dans le gabarit)
-npm run golden    # golden master : original (tag v1.0.1) vs dist dans Chromium headless
+node scripts/export-kit.mjs son.wav [kit.kit.zip]   # fabrique un kit en ligne de commande (Chromium headless)
 npm run test:e2e  # smoke E2E sur dist/index.html
 npm run serve     # sert dist/ sur http://localhost:8765
 ```
 
 Les scripts navigateur utilisent `/usr/bin/chromium` par défaut ; `CHROME_PATH` permet d'en choisir un autre.
 
-La CI (GitHub Actions) enchaîne tests unitaires, build, golden master et smoke à chaque push, puis déploie `dist/index.html` sur GitHub Pages depuis `main`. Chaque release joint ce fichier.
+La CI (GitHub Actions) enchaîne tests unitaires, build et smoke E2E à chaque push, puis déploie `dist/index.html` sur GitHub Pages depuis `main`. Chaque release joint ce fichier.
 
 ### Structure du dépôt
 
@@ -137,18 +143,20 @@ src/
   library.js   orchestration (import → rendu → lecture → export), testée avec des doubles
   app.js       composition : câble les trois couches
   template.html, styles.css
-scripts/       build.mjs, golden.mjs, smoke.mjs, make-fixture.mjs
+scripts/       build.mjs, smoke.mjs, export-kit.mjs, make-fixture.mjs
 tests/         node:test, miroir de src/ ; fixtures/fixture.wav est le son de référence
 dist/          généré, non versionné : index.html autonome
 ```
 
-### Golden master
+### Reproductibilité et contrat du moteur
 
-Le refactor est iso-fonctionnel par construction : `scripts/golden.mjs` charge l'original (relu dans git au tag `v1.0.1`) et `dist/index.html` dans le même Chromium, remplace `Math.random` par un générateur seedé, importe le même WAV, et compare :
-
-- la **trace du graphe Web Audio** (nœuds créés, paramètres, courbes, buffers, connexions, départs), qui doit être strictement identique ;
-- les 20 buffers rendus, à une tolérance près : Chromium somme les entrées multiples d'un nœud dans un ordre non déterministe ; la saturation amplifie ces écarts jusqu'à ~2e-3, et sur les pads bitcrushés un échantillon peut basculer d'un pas de quantification (jusqu'à 1,8e-2 mesuré). D'où deux seuils : écart max 0,1 (tolère un basculement isolé) et RMS relatif 1 % (le vrai discriminant, mesuré ≤ 0,17 % entre deux rendus de l'original). `GOLDEN_SELF=1` compare l'original à lui-même pour recalibrer ;
-- la structure du ZIP exporté, le DOM, le texte visible et le CSS, à l'identique.
+Chaque pad est rendu avec sa propre graine 32 bits (`mulberry32`), mémorisée et écrite
+dans `kit.json` : même son source + même graine = même percussion. Le graphe Web Audio
+construit par le moteur pour une graine donnée est figé par snapshot
+(`tests/audio/snapshots/`) via un faux contexte audio enregistreur ; toute dérive du
+moteur fait échouer ces tests. Le golden master de la 1.1.0 (comparaison à l'original
+v1.0.1, à tirages identiques) a été retiré en 1.2.0 : la graine par pad change les
+tirages par conception, après avoir prouvé l'équivalence de la refonte.
 
 ## Conventions du projet
 
